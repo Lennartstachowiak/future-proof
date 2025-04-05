@@ -7,9 +7,11 @@ import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import ProgressBar from "../components/ui/ProgressBar";
 import SearchBar from "../components/ui/SearchBar";
+import { useRestaurant } from "../context/RestaurantContext";
+import { apiGet } from "../utils/api";
 
 type InventoryItem = {
-  id: number;
+  id: string;
   name: string;
   category: string;
   current_quantity: number;
@@ -19,6 +21,8 @@ type InventoryItem = {
 };
 
 type InventoryResponse = {
+  restaurant_id: string;
+  restaurant_name: string;
   items: InventoryItem[];
 };
 
@@ -28,120 +32,29 @@ export default function InventoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
+  const { selectedRestaurant } = useRestaurant();
+
   useEffect(() => {
     const fetchInventory = async () => {
+      if (!selectedRestaurant) return;
+
       try {
-        // In a real app, this would fetch from your actual API endpoint
-        // const response = await fetch('http://localhost:8000/api/v1/inventory');
-        // const data = await response.json();
-
-        // For demonstration, using mock data
-        const mockData: InventoryResponse = {
-          items: [
-            {
-              id: 1,
-              name: "Flour",
-              category: "Dry Goods",
-              current_quantity: 50.5,
-              unit: "kg",
-              minimum_threshold: 10.0,
-              status: "sufficient",
-            },
-            {
-              id: 2,
-              name: "Sugar",
-              category: "Dry Goods",
-              current_quantity: 12.3,
-              unit: "kg",
-              minimum_threshold: 5.0,
-              status: "sufficient",
-            },
-            {
-              id: 3,
-              name: "Tomatoes",
-              category: "Produce",
-              current_quantity: 15.2,
-              unit: "kg",
-              minimum_threshold: 5.0,
-              status: "sufficient",
-            },
-            {
-              id: 4,
-              name: "Lettuce",
-              category: "Produce",
-              current_quantity: 6.8,
-              unit: "kg",
-              minimum_threshold: 4.0,
-              status: "sufficient",
-            },
-            {
-              id: 5,
-              name: "Chicken Breast",
-              category: "Meat",
-              current_quantity: 8.7,
-              unit: "kg",
-              minimum_threshold: 10.0,
-              status: "low",
-            },
-            {
-              id: 6,
-              name: "Ground Beef",
-              category: "Meat",
-              current_quantity: 12.5,
-              unit: "kg",
-              minimum_threshold: 8.0,
-              status: "sufficient",
-            },
-            {
-              id: 7,
-              name: "Milk",
-              category: "Dairy",
-              current_quantity: 5.0,
-              unit: "L",
-              minimum_threshold: 10.0,
-              status: "low",
-            },
-            {
-              id: 8,
-              name: "Cheese",
-              category: "Dairy",
-              current_quantity: 7.2,
-              unit: "kg",
-              minimum_threshold: 3.0,
-              status: "sufficient",
-            },
-            {
-              id: 9,
-              name: "Ice Cream",
-              category: "Frozen",
-              current_quantity: 25.0,
-              unit: "L",
-              minimum_threshold: 10.0,
-              status: "excess",
-            },
-            {
-              id: 10,
-              name: "Frozen Vegetables",
-              category: "Frozen",
-              current_quantity: 18.4,
-              unit: "kg",
-              minimum_threshold: 15.0,
-              status: "sufficient",
-            },
-          ],
-        };
-
-        setInventory(mockData.items);
-        setIsLoading(false);
+        setIsLoading(true);
+        const data = await apiGet<InventoryResponse>(
+          `api/v1/inventory/restaurant/${selectedRestaurant.id}`
+        );
+        setInventory(data.items);
+        setError(null);
       } catch (err) {
         setError("Failed to fetch inventory data");
-        setIsLoading(false);
         console.error(err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchInventory();
-  }, []);
+  }, [selectedRestaurant]);
 
   const getUniqueCategories = () => {
     const categories = inventory.map((item) => item.category);

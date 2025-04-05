@@ -1,27 +1,46 @@
-// NOTE: Ensure you have installed date-fns by running:   
+// NOTE: Ensure you have installed date-fns by running:
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { format } from "date-fns";
+import { useRestaurant } from "../context/RestaurantContext";
+import { apiGet } from "../utils/api";
 
-// Keep the existing types for future use
-type PromotionItem = {
-  id: number;
-  item_name: string;
-  discount_percentage: number;
+// API response types
+type RestaurantCampaignResponse = {
+  restaurant_id: string;
+  restaurant_name: string;
+  campaigns: Campaign[];
+  conversations: ApiConversation[];
+  users: User[];
+};
+
+type Campaign = {
+  id: string;
+  name: string;
+  description: string;
   start_date: string;
   end_date: string;
-  description: string;
-  status: "active" | "scheduled" | "expired";
 };
 
-type PromotionResponse = {
-  items: PromotionItem[];
+type ApiConversation = {
+  id: string;
+  title: string;
+  campaign_id: string;
+  last_message: string;
+  last_message_date: string;
+  participants: string[];
 };
 
-// New types for inbox layout
+type User = {
+  id: string;
+  name: string;
+  role: string;
+};
+
+// Frontend types for inbox layout
 type Conversation = {
   id: string;
   title: string;
@@ -29,7 +48,7 @@ type Conversation = {
   date: Date;
   unread: boolean;
   participants: string[];
-  campaignId: string; // added property
+  campaignId: string;
 };
 
 type Message = {
@@ -40,141 +59,153 @@ type Message = {
   timestamp: Date;
 };
 
-// Define sample campaigns
-const campaigns = [
-  { id: "camp1", name: "Campaign 1" },
-  { id: "camp2", name: "Campaign 2" },
-  { id: "camp3", name: "Campaign 3" }
-];
-
 export default function PromotionPage() {
+  // State for API data
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Campaign selection state
-  const [selectedCampaign, setSelectedCampaign] = useState<string>("camp1");
+  const [selectedCampaign, setSelectedCampaign] = useState<string>("");
+
+  // Get the selected restaurant from context
+  const { selectedRestaurant } = useRestaurant();
 
   // Define new function for starting a new campaign (empty for now)
   const handleNewCampaign = () => {
     // TODO: implement functionality for starting a new campaign
   };
 
-  // Sample conversations data with campaignId
-  const [conversations, setConversations] = useState<Conversation[]>([
-    {
-      id: "1",
-      title: "New Burger Promotion",
-      lastMessage: "Great! Let's launch this next week.",
-      date: new Date(2023, 6, 12),
-      unread: true,
-      participants: ["Alex", "You"],
-      campaignId: "camp1"
-    },
-    {
-      id: "2",
-      title: "Summer Drink Specials",
-      lastMessage: "Could we add more tropical options?",
-      date: new Date(2023, 6, 10),
-      unread: false,
-      participants: ["Marketing Team", "You"],
-      campaignId: "camp1"
-    },
-    {
-      id: "3",
-      title: "Loyalty Program Update",
-      lastMessage: "The new rewards structure looks promising.",
-      date: new Date(2023, 6, 8),
-      unread: false,
-      participants: ["Sarah", "You", "Dev Team"],
-      campaignId: "camp2"
-    },
-    {
-      id: "4",
-      title: "Weekend Special Planning",
-      lastMessage: "Let's finalize the menu by Thursday.",
-      date: new Date(2023, 6, 5),
-      unread: false,
-      participants: ["Kitchen", "You"],
-      campaignId: "camp3"
-    }
-  ]);
+  // Frontend conversations state (transformed from API data)
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  // Sample messages mapped by conversation id
-  const [messages, setMessages] = useState<Record<string, Message[]>>({
-    "1": [
-      {
-        id: "101",
-        conversationId: "1",
-        sender: "Alex",
-        text: "I've been thinking about a new burger promotion for next month.",
-        timestamp: new Date(2023, 6, 12, 9, 30)
-      },
-      {
-        id: "102",
-        conversationId: "1",
-        sender: "You",
-        text: "That sounds interesting. What do you have in mind?",
-        timestamp: new Date(2023, 6, 12, 9, 45)
-      },
-      {
-        id: "103",
-        conversationId: "1",
-        sender: "Alex",
-        text: "I was thinking a gourmet burger with customizable toppings.",
-        timestamp: new Date(2023, 6, 12, 10, 0)
-      },
-      {
-        id: "104",
-        conversationId: "1",
-        sender: "You",
-        text: "Great! Let's launch this next week.",
-        timestamp: new Date(2023, 6, 12, 10, 15)
-      }
-    ],
-    "2": [
-      {
-        id: "201",
-        conversationId: "2",
-        sender: "Marketing Team",
-        text: "We need to finalize the summer drink specials soon.",
-        timestamp: new Date(2023, 6, 10, 13, 0)
-      },
-      {
-        id: "202",
-        conversationId: "2",
-        sender: "You",
-        text: "I have some refreshing options to suggest.",
-        timestamp: new Date(2023, 6, 10, 14, 30)
-      },
-      {
-        id: "203",
-        conversationId: "2",
-        sender: "Marketing Team",
-        text: "Could we add more tropical options?",
-        timestamp: new Date(2023, 6, 10, 15, 45)
-      }
-    ]
-  });
+  // Sample messages mapped by conversation id (would come from API in a real app)
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
 
-  const [selectedConversation, setSelectedConversation] = useState<string>("1");
+  const [selectedConversation, setSelectedConversation] = useState<string>("");
+
+  // Fetch campaign data when the selected restaurant changes
+  useEffect(() => {
+    const fetchCampaignData = async () => {
+      if (!selectedRestaurant) return;
+
+      try {
+        setIsLoading(true);
+        const data = await apiGet<RestaurantCampaignResponse>(
+          `api/v1/promotion/restaurant/${selectedRestaurant.id}`
+        );
+
+        // Set campaigns from API
+        setCampaigns(data.campaigns);
+
+        // Transform API conversations to frontend format
+        const transformedConversations: Conversation[] = data.conversations.map(
+          (conv) => ({
+            id: conv.id,
+            title: conv.title,
+            lastMessage: conv.last_message,
+            date: new Date(conv.last_message_date),
+            unread: false, // This would come from user state in a real app
+            participants: conv.participants,
+            campaignId: conv.campaign_id,
+          })
+        );
+
+        setConversations(transformedConversations);
+
+        // Set initial selected campaign if available
+        if (data.campaigns.length > 0 && !selectedCampaign) {
+          setSelectedCampaign(data.campaigns[0].id);
+        }
+
+        // Set initial selected conversation if available
+        if (transformedConversations.length > 0 && !selectedConversation) {
+          setSelectedConversation(transformedConversations[0].id);
+        }
+
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching campaign data:", err);
+        setError("Failed to load campaign data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCampaignData();
+  }, [selectedRestaurant, selectedCampaign, selectedConversation]);
 
   // Filter conversations by currently selected campaign
-  const filteredConversations = conversations.filter(conv => conv.campaignId === selectedCampaign);
+  const filteredConversations = conversations.filter(
+    (conv) => conv.campaignId === selectedCampaign
+  );
 
   // Handle campaign change: update selectedCampaign and reset selectedConversation if needed
   const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCampaign = e.target.value;
     setSelectedCampaign(newCampaign);
-    const convs = conversations.filter(c => c.campaignId === newCampaign);
+    const convs = conversations.filter((c) => c.campaignId === newCampaign);
     setSelectedConversation(convs.length > 0 ? convs[0].id : "");
   };
 
   const handleConversationSelect = (id: string) => {
     setSelectedConversation(id);
-    setConversations(prev =>
-      prev.map(conv => conv.id === id ? { ...conv, unread: false } : conv)
+    setConversations((prev) =>
+      prev.map((conv) => (conv.id === id ? { ...conv, unread: false } : conv))
     );
   };
 
-  const currentConversation = conversations.find(c => c.id === selectedConversation);
+  const currentConversation = conversations.find(
+    (c) => c.id === selectedConversation
+  );
   const currentMessages = messages[selectedConversation] || [];
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout title="Promotions" subtitle="Loading campaign data...">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[--primary-color]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <DashboardLayout
+        title="Promotions"
+        subtitle="Error loading campaign data"
+      >
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700">{error}</p>
+          <p className="mt-2">
+            Please try again later or contact support if the problem persists.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // No campaigns state
+  if (campaigns.length === 0) {
+    return (
+      <DashboardLayout title="Promotions" subtitle="No campaigns found">
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-700">
+            No campaigns found for this restaurant.
+          </p>
+          <button
+            onClick={handleNewCampaign}
+            className="mt-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Create your first campaign
+          </button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout
@@ -182,14 +213,21 @@ export default function PromotionPage() {
       subtitle="Manage your promotional conversations"
     >
       <div className="mb-4 flex items-center space-x-2">
-          <select value={selectedCampaign} onChange={handleCampaignChange} className="p-2 border border-gray-300 rounded">
-          {campaigns.map(campaign => (
+        <select
+          value={selectedCampaign}
+          onChange={handleCampaignChange}
+          className="p-2 border border-gray-300 rounded"
+        >
+          {campaigns.map((campaign) => (
             <option key={campaign.id} value={campaign.id}>
               {campaign.name}
             </option>
           ))}
         </select>
-        <button onClick={handleNewCampaign} className="p-2 border border-blue-500 rounded text-blue-500 hover:bg-blue-50">
+        <button
+          onClick={handleNewCampaign}
+          className="p-2 border border-blue-500 rounded text-blue-500 hover:bg-blue-50"
+        >
           Start new Campaign
         </button>
       </div>
@@ -197,13 +235,17 @@ export default function PromotionPage() {
         {/* Left Sidebar: Conversations List */}
         <div className="w-1/3 border-r border-gray-200">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Conversations</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              Conversations
+            </h2>
           </div>
           <div className="overflow-y-auto h-full">
-            {filteredConversations.map(conv => (
+            {filteredConversations.map((conv) => (
               <div
                 key={conv.id}
-                className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${selectedConversation === conv.id ? 'bg-blue-50' : ''}`}
+                className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
+                  selectedConversation === conv.id ? "bg-blue-50" : ""
+                }`}
                 onClick={() => handleConversationSelect(conv.id)}
               >
                 <div className="flex justify-between">
@@ -217,8 +259,12 @@ export default function PromotionPage() {
                     {format(conv.date, "MMM d")}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 truncate">{conv.lastMessage}</p>
-                <p className="text-xs text-gray-500 mt-1">{conv.participants.join(", ")}</p>
+                <p className="text-sm text-gray-600 truncate">
+                  {conv.lastMessage}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {conv.participants.join(", ")}
+                </p>
               </div>
             ))}
           </div>
@@ -229,16 +275,28 @@ export default function PromotionPage() {
           {currentConversation ? (
             <>
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-800">{currentConversation.title}</h2>
-                <p className="text-sm text-gray-500">{currentConversation.participants.join(", ")}</p>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  {currentConversation.title}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {currentConversation.participants.join(", ")}
+                </p>
               </div>
               <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                {currentMessages.map(msg => (
+                {currentMessages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex ${msg.sender === "You" ? "justify-end" : "justify-start"}`}
+                    className={`flex ${
+                      msg.sender === "You" ? "justify-end" : "justify-start"
+                    }`}
                   >
-                    <div className={`p-3 rounded-lg max-w-xs ${msg.sender === "You" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}`}>
+                    <div
+                      className={`p-3 rounded-lg max-w-xs ${
+                        msg.sender === "You"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-800"
+                      }`}
+                    >
                       <p className="text-sm">{msg.text}</p>
                       <span className="text-xs text-gray-500 mt-1 block">
                         {format(msg.timestamp, "p")}
@@ -257,7 +315,9 @@ export default function PromotionPage() {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
-              <p className="text-gray-500">Select a conversation to view messages</p>
+              <p className="text-gray-500">
+                Select a conversation to view messages
+              </p>
             </div>
           )}
         </div>

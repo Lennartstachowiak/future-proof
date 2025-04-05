@@ -1,3 +1,4 @@
+from app.api.api_v1.api import api_router
 import logging
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +25,8 @@ app.add_middleware(
 )
 
 # Initialize database on startup
+
+
 @app.on_event("startup")
 def on_startup():
     logger.info("Initializing database...")
@@ -33,17 +36,19 @@ def on_startup():
     else:
         logger.error("Failed to initialize database after multiple attempts")
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Restaurant Inventory Prediction API"}
 
 # Health check endpoint that tests database connection
+
+
 @app.get("/health")
 async def health(db=Depends(get_db)):
     return {"status": "healthy", "database": "connected"}
 
 # Import and include routes
-from app.api.api_v1.api import api_router
 app.include_router(api_router, prefix="/api/v1")
 
 if __name__ == "__main__":

@@ -1,7 +1,63 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
+import { useRestaurant } from "../../context/RestaurantContext";
+
+// Restaurant selector component
+function RestaurantSelector() {
+  const {
+    restaurants,
+    selectedRestaurant,
+    setSelectedRestaurant,
+    isLoading,
+    error,
+  } = useRestaurant();
+
+  if (isLoading) {
+    return (
+      <div className="px-5 py-2">
+        <div className="animate-pulse h-8 bg-gray-200 rounded w-full"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-5 py-2 text-sm text-red-500">
+        Failed to load restaurants
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-5 py-2 border-b border-neutral-200">
+      <label className="block text-xs font-medium text-gray-500 mb-1">
+        Restaurant
+      </label>
+      <select
+        value={selectedRestaurant?.id || ""}
+        onChange={(e) => {
+          const selected = restaurants.find((r) => r.id === e.target.value);
+          if (selected) setSelectedRestaurant(selected);
+        }}
+        className="w-full p-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[--primary-color-light] focus:border-[--primary-color-light]"
+      >
+        {restaurants.length === 0 ? (
+          <option value="">No restaurants available</option>
+        ) : (
+          restaurants.map((restaurant) => (
+            <option key={restaurant.id} value={restaurant.id}>
+              {restaurant.name}
+            </option>
+          ))
+        )}
+      </select>
+    </div>
+  );
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -87,6 +143,9 @@ export default function Sidebar() {
         </div>
         <h1 className="ml-3 text-lg font-semibold">FutureProof</h1>
       </div>
+
+      {/* Restaurant selector */}
+      <RestaurantSelector />
 
       {/* Navigation links */}
       <nav className="flex-1 px-3 py-4">
