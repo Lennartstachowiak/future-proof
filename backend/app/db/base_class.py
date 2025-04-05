@@ -1,5 +1,5 @@
-from typing import Any
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+
 
 class CustomBase:
     # Generate __tablename__ automatically
@@ -10,5 +10,6 @@ class CustomBase:
     # To allow having the same behavior as with Pydantic models
     def dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 Base = declarative_base(cls=CustomBase)
