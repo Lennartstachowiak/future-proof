@@ -1,5 +1,5 @@
-import React from 'react';
-import clsx from 'clsx';
+import React from "react";
+import clsx from "clsx";
 
 type SearchBarProps = {
   className?: string;
@@ -11,19 +11,19 @@ type SearchBarProps = {
 
 export default function SearchBar({
   className,
-  placeholder = 'Search',
+  placeholder = "Search",
   onChange,
   onSearch,
   value,
 }: SearchBarProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && onSearch) {
+    if (e.key === "Enter" && onSearch) {
       onSearch(e.currentTarget.value);
     }
   };
 
   return (
-    <div className={clsx('relative', className)}>
+    <div className={clsx("relative", className)}>
       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         <svg
           className="w-4 h-4 text-neutral-400"

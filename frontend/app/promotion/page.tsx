@@ -28,9 +28,11 @@ export default function PromotionPage() {
   const [newPromotion, setNewPromotion] = useState({
     item_name: "",
     discount_percentage: 10,
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    description: ""
+    start_date: new Date().toISOString().split("T")[0],
+    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
+    description: "",
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewPromotionForm, setShowNewPromotionForm] = useState(false);
@@ -41,7 +43,7 @@ export default function PromotionPage() {
         // In a real app, this would fetch from your actual API endpoint
         // const response = await fetch('http://localhost:8000/api/v1/promotion');
         // const data = await response.json();
-        
+
         // For demonstration, using mock data
         const today = new Date();
         const mockData: PromotionResponse = {
@@ -50,30 +52,40 @@ export default function PromotionPage() {
               id: 1,
               item_name: "Burger Special",
               discount_percentage: 15,
-              start_date: new Date(today).toISOString().split('T')[0],
-              end_date: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              start_date: new Date(today).toISOString().split("T")[0],
+              end_date: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
               description: "15% off our signature burger",
-              status: "active"
+              status: "active",
             },
             {
               id: 2,
               item_name: "Pizza Monday",
               discount_percentage: 20,
-              start_date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-              end_date: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              start_date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+              end_date: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
               description: "20% off all pizzas every Monday",
-              status: "active"
+              status: "active",
             },
             {
               id: 3,
               item_name: "Dessert Deal",
               discount_percentage: 10,
-              start_date: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-              end_date: new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              start_date: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+              end_date: new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
               description: "10% off all desserts",
-              status: "scheduled"
+              status: "scheduled",
             },
-          ]
+          ],
         };
 
         setPromotions(mockData.items);
@@ -88,14 +100,16 @@ export default function PromotionPage() {
     fetchPromotions();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setNewPromotion({ ...newPromotion, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // In a real app, this would post to your API
     // try {
     //   const response = await fetch('http://localhost:8000/api/v1/promotion', {
@@ -110,42 +124,51 @@ export default function PromotionPage() {
     // }
 
     // For demonstration, just add to the local state
-    const mockId = Math.max(...promotions.map(p => p.id)) + 1;
+    const mockId = Math.max(...promotions.map((p) => p.id)) + 1;
     const today = new Date();
     const startDate = new Date(newPromotion.start_date);
-    
+
     const mockNewPromotion: PromotionItem = {
       id: mockId,
       ...newPromotion,
-      status: startDate > today ? "scheduled" : "active"
+      status: startDate > today ? "scheduled" : "active",
     };
 
     setPromotions([...promotions, mockNewPromotion]);
-    
+
     // Reset form
     setNewPromotion({
       item_name: "",
       discount_percentage: 10,
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      description: ""
+      start_date: new Date().toISOString().split("T")[0],
+      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      description: "",
     });
   };
 
   const filterPromotions = () => {
-    return promotions.filter(promotion => 
-      promotion.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      promotion.description.toLowerCase().includes(searchTerm.toLowerCase())
+    return promotions.filter(
+      (promotion) =>
+        promotion.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        promotion.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
   // Convert promotion status to appropriate Badge variant
-  const getStatusBadgeVariant = (status: string): 'success' | 'warning' | 'error' | 'info' => {
-    switch(status) {
-      case "active": return "success";
-      case "scheduled": return "info";
-      case "expired": return "warning";
-      default: return "info";
+  const getStatusBadgeVariant = (
+    status: string
+  ): "success" | "warning" | "error" | "info" => {
+    switch (status) {
+      case "active":
+        return "success";
+      case "scheduled":
+        return "info";
+      case "expired":
+        return "warning";
+      default:
+        return "info";
     }
   };
 
@@ -167,20 +190,35 @@ export default function PromotionPage() {
   }
 
   return (
-    <DashboardLayout title="Promotions" subtitle="Create and manage promotional offers">
+    <DashboardLayout
+      title="Promotions"
+      subtitle="Create and manage promotional offers"
+    >
       <div className="flex justify-between items-center mb-6">
         <SearchBar
           placeholder="Search promotions..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setSearchTerm(e.target.value)
+          }
           className="w-64"
         />
         <Button
           onClick={() => setShowNewPromotionForm(true)}
           variant="primary"
           leftIcon={
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
           }
         >
@@ -265,10 +303,7 @@ export default function PromotionPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-              >
+              <Button type="submit" variant="primary">
                 Create Promotion
               </Button>
             </div>
@@ -305,51 +340,76 @@ export default function PromotionPage() {
             <tbody>
               {filterPromotions().length > 0 ? (
                 filterPromotions().map((promotion, index) => (
-                  <tr 
+                  <tr
                     key={promotion.id}
-                    className={index % 2 === 0 ? 'bg-[--card-background]' : 'bg-[#f9fafb]'}
+                    className={
+                      index % 2 === 0
+                        ? "bg-[--card-background]"
+                        : "bg-[#f9fafb]"
+                    }
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-[500]">{promotion.item_name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-bold text-[--primary-color]">{promotion.discount_percentage}%</div>
+                      <div className="font-bold text-[--primary-color]">
+                        {promotion.discount_percentage}%
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div>
-                        {new Date(promotion.start_date).toLocaleDateString()} -{' '}
+                        {new Date(promotion.start_date).toLocaleDateString()} -{" "}
                         {new Date(promotion.end_date).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge 
-                        variant={getStatusBadgeVariant(promotion.status)}
-                      >
-                        {promotion.status.charAt(0).toUpperCase() + promotion.status.slice(1)}
+                      <Badge variant={getStatusBadgeVariant(promotion.status)}>
+                        {promotion.status.charAt(0).toUpperCase() +
+                          promotion.status.slice(1)}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex space-x-2">
                         <Button
-                          onClick={() => console.log('Edit promotion')}
+                          onClick={() => console.log("Edit promotion")}
                           variant="text"
                           size="sm"
                           className="text-blue-600 hover:text-blue-800"
                           aria-label="Edit promotion"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
                           </svg>
                         </Button>
                         <Button
-                          onClick={() => console.log('Delete promotion')}
+                          onClick={() => console.log("Delete promotion")}
                           variant="text"
                           size="sm"
                           className="text-red-600 hover:text-red-800"
                           aria-label="Delete promotion"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         </Button>
                       </div>
@@ -358,7 +418,10 @@ export default function PromotionPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-neutral-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-neutral-500"
+                  >
                     No promotions found. Create your first promotion above!
                   </td>
                 </tr>

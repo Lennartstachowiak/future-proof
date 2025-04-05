@@ -5,9 +5,8 @@ import DashboardLayout from "../components/layout/DashboardLayout";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
-import SearchBar from "../components/ui/SearchBar";
 import ProgressBar from "../components/ui/ProgressBar";
-import StatsCard from "../components/ui/StatsCard";
+import SearchBar from "../components/ui/SearchBar";
 
 type InventoryItem = {
   id: number;
@@ -35,7 +34,7 @@ export default function InventoryPage() {
         // In a real app, this would fetch from your actual API endpoint
         // const response = await fetch('http://localhost:8000/api/v1/inventory');
         // const data = await response.json();
-        
+
         // For demonstration, using mock data
         const mockData: InventoryResponse = {
           items: [
@@ -46,7 +45,7 @@ export default function InventoryPage() {
               current_quantity: 50.5,
               unit: "kg",
               minimum_threshold: 10.0,
-              status: "sufficient"
+              status: "sufficient",
             },
             {
               id: 2,
@@ -55,7 +54,7 @@ export default function InventoryPage() {
               current_quantity: 12.3,
               unit: "kg",
               minimum_threshold: 5.0,
-              status: "sufficient"
+              status: "sufficient",
             },
             {
               id: 3,
@@ -64,7 +63,7 @@ export default function InventoryPage() {
               current_quantity: 15.2,
               unit: "kg",
               minimum_threshold: 5.0,
-              status: "sufficient"
+              status: "sufficient",
             },
             {
               id: 4,
@@ -73,7 +72,7 @@ export default function InventoryPage() {
               current_quantity: 6.8,
               unit: "kg",
               minimum_threshold: 4.0,
-              status: "sufficient"
+              status: "sufficient",
             },
             {
               id: 5,
@@ -82,7 +81,7 @@ export default function InventoryPage() {
               current_quantity: 8.7,
               unit: "kg",
               minimum_threshold: 10.0,
-              status: "low"
+              status: "low",
             },
             {
               id: 6,
@@ -91,7 +90,7 @@ export default function InventoryPage() {
               current_quantity: 12.5,
               unit: "kg",
               minimum_threshold: 8.0,
-              status: "sufficient"
+              status: "sufficient",
             },
             {
               id: 7,
@@ -100,7 +99,7 @@ export default function InventoryPage() {
               current_quantity: 5.0,
               unit: "L",
               minimum_threshold: 10.0,
-              status: "low"
+              status: "low",
             },
             {
               id: 8,
@@ -109,7 +108,7 @@ export default function InventoryPage() {
               current_quantity: 7.2,
               unit: "kg",
               minimum_threshold: 3.0,
-              status: "sufficient"
+              status: "sufficient",
             },
             {
               id: 9,
@@ -118,7 +117,7 @@ export default function InventoryPage() {
               current_quantity: 25.0,
               unit: "L",
               minimum_threshold: 10.0,
-              status: "excess"
+              status: "excess",
             },
             {
               id: 10,
@@ -127,9 +126,9 @@ export default function InventoryPage() {
               current_quantity: 18.4,
               unit: "kg",
               minimum_threshold: 15.0,
-              status: "sufficient"
+              status: "sufficient",
             },
-          ]
+          ],
         };
 
         setInventory(mockData.items);
@@ -145,40 +144,47 @@ export default function InventoryPage() {
   }, []);
 
   const getUniqueCategories = () => {
-    const categories = inventory.map(item => item.category);
+    const categories = inventory.map((item) => item.category);
     return [...new Set(categories)];
   };
 
   // Convert inventory status to appropriate Badge variant
-  const getStatusBadgeVariant = (status: string): 'success' | 'warning' | 'error' | 'info' => {
-    switch(status) {
-      case "low": return "error";
-      case "sufficient": return "success";
-      case "excess": return "warning";
-      default: return "info";
+  const getStatusBadgeVariant = (
+    status: string
+  ): "success" | "warning" | "error" | "info" => {
+    switch (status) {
+      case "low":
+        return "error";
+      case "sufficient":
+        return "success";
+      case "excess":
+        return "warning";
+      default:
+        return "info";
     }
   };
-  
+
   // Convert inventory status to appropriate ProgressBar color
-  const getProgressBarColor = (item: InventoryItem): 'success' | 'warning' | 'error' => {
+  const getProgressBarColor = (
+    item: InventoryItem
+  ): "success" | "warning" | "error" => {
     const ratio = item.current_quantity / item.minimum_threshold;
-    if (ratio < 1) return 'error';
-    if (ratio > 2) return 'warning';
-    return 'success';
+    if (ratio < 1) return "error";
+    if (ratio > 2) return "warning";
+    return "success";
   };
 
-  const filteredInventory = selectedCategory === "all" 
-    ? inventory
-    : inventory.filter(item => item.category === selectedCategory);
-
-  // Count items by status
-  const lowItems = inventory.filter(item => item.status === "low").length;
-  const sufficientItems = inventory.filter(item => item.status === "sufficient").length;
-  const excessItems = inventory.filter(item => item.status === "excess").length;
+  const filteredInventory =
+    selectedCategory === "all"
+      ? inventory
+      : inventory.filter((item) => item.category === selectedCategory);
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Loading..." subtitle="Please wait while we load your inventory data">
+      <DashboardLayout
+        title="Loading..."
+        subtitle="Please wait while we load your inventory data"
+      >
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[--primary-color]"></div>
         </div>
@@ -188,7 +194,10 @@ export default function InventoryPage() {
 
   if (error) {
     return (
-      <DashboardLayout title="Error" subtitle="There was a problem loading your inventory data">
+      <DashboardLayout
+        title="Error"
+        subtitle="There was a problem loading your inventory data"
+      >
         <Card className="bg-red-50 border border-red-200">
           <div className="text-red-700">
             <strong className="font-[500]">Error:</strong>
@@ -200,50 +209,16 @@ export default function InventoryPage() {
   }
 
   return (
-    <DashboardLayout title="Inventory Management" subtitle="Track and manage your food inventory">
-      {/* Inventory Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-        <StatsCard
-          title="Low Stock Items"
-          value={lowItems}
-          subtext="Need attention"
-          gradient="pink-orange"
-          icon={
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-            </svg>
-          }
-        />
-        
-        <StatsCard
-          title="Sufficient Stock"
-          value={sufficientItems}
-          subtext="Optimal levels"
-          gradient="blue-cyan"
-          icon={
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-        />
-        
-        <StatsCard
-          title="Excess Stock"
-          value={excessItems}
-          subtext="Consider promotions"
-          gradient="none"
-          icon={
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-        />
-      </div>
-
+    <DashboardLayout
+      title="Inventory Management"
+      subtitle="Track and manage your food inventory"
+    >
       {/* Filters */}
       <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
         <div className="flex items-center">
-          <span className="mr-3 text-sm font-[500] text-neutral-700">Filter by category:</span>
+          <span className="mr-3 text-sm font-[500] text-neutral-700">
+            Filter by category:
+          </span>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -257,9 +232,9 @@ export default function InventoryPage() {
             ))}
           </select>
         </div>
-        
-        <SearchBar 
-          placeholder="Search inventory..." 
+
+        <SearchBar
+          placeholder="Search inventory..."
           className="w-64"
           // Implementation would require adding search functionality
         />
@@ -293,9 +268,11 @@ export default function InventoryPage() {
             </thead>
             <tbody>
               {filteredInventory.map((item, index) => (
-                <tr 
+                <tr
                   key={item.id}
-                  className={index % 2 === 0 ? 'bg-[--card-background]' : 'bg-[#f9fafb]'}
+                  className={
+                    index % 2 === 0 ? "bg-[--card-background]" : "bg-[#f9fafb]"
+                  }
                 >
                   <td className="px-6 py-4">
                     <div className="font-[500]">{item.name}</div>
@@ -305,25 +282,29 @@ export default function InventoryPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="mb-1 flex justify-between">
-                      <span>{item.current_quantity} {item.unit}</span>
-                      <span className="text-neutral-500 text-sm">Min: {item.minimum_threshold} {item.unit}</span>
+                      <span>
+                        {item.current_quantity} {item.unit}
+                      </span>
+                      <span className="text-neutral-500 text-sm">
+                        Min: {item.minimum_threshold} {item.unit}
+                      </span>
                     </div>
                     <ProgressBar
-                      value={(item.current_quantity / item.minimum_threshold) * 50}
+                      value={
+                        (item.current_quantity / item.minimum_threshold) * 50
+                      }
                       max={100}
                       color={getProgressBarColor(item)}
                     />
                   </td>
                   <td className="px-6 py-4">
                     <Badge variant={getStatusBadgeVariant(item.status)}>
-                      {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                      {item.status.charAt(0).toUpperCase() +
+                        item.status.slice(1)}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                    >
+                    <Button variant="outline" size="sm">
                       Update
                     </Button>
                   </td>
@@ -333,7 +314,7 @@ export default function InventoryPage() {
           </table>
         </div>
       </Card>
-      
+
       {filteredInventory.length === 0 && (
         <Card className="mt-4">
           <div className="text-center py-4 text-neutral-500">
