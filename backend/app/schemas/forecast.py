@@ -7,7 +7,6 @@ class ForecastItem(BaseModel):
     item_id: int
     item_name: str
     predicted_quantity: float
-    confidence: float
 
 class ForecastResponse(BaseModel):
     items: List[ForecastItem]
