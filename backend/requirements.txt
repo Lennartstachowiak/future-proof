@@ -12,3 +12,5 @@ requests
 matplotlib
 seaborn
 datetime
+requests
+

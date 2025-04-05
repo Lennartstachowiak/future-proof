@@ -6,7 +6,8 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { format } from "date-fns";
 import { useRestaurant } from "../context/RestaurantContext";
-import { apiGet } from "../utils/api";
+import { apiGet, apiPost } from "../utils/api";
+import { useRouter } from "next/navigation";
 
 // API response types
 type RestaurantCampaignResponse = {
@@ -70,6 +71,7 @@ export default function PromotionPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
 
   // Campaign selection state
   const [selectedCampaign, setSelectedCampaign] = useState<string>("");
@@ -78,8 +80,11 @@ export default function PromotionPage() {
   const { selectedRestaurant } = useRestaurant();
 
   // Define new function for starting a new campaign (empty for now)
-  const handleNewCampaign = () => {
-    // TODO: implement functionality for starting a new campaign
+  const handleNewCampaign = async () => {
+    setIsLoading(true);
+    await apiPost(`api/v1/campaign/${selectedRestaurant?.id}`, {});
+    router.refresh();
+    setIsLoading(false);
   };
 
   // Frontend conversations state (transformed from API data)
