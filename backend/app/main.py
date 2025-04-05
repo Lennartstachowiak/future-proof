@@ -39,7 +39,7 @@ def on_startup():
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the Restaurant Inventory Prediction API"}
+    return {"message": "healthy"}
 
 # Health check endpoint that tests database connection
 

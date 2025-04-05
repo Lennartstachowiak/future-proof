@@ -13,48 +13,54 @@ type RestaurantCampaignResponse = {
   restaurant_id: string;
   restaurant_name: string;
   campaigns: Campaign[];
-  conversations: ApiConversation[];
-  users: User[];
+  customers: Customer[];
 };
 
 type Campaign = {
   id: string;
   name: string;
   description: string;
-  start_date: string;
-  end_date: string;
+  conversations: ApiConversation[];
 };
 
 type ApiConversation = {
   id: string;
-  title: string;
   campaign_id: string;
+  customer_id: string;
+  customer_name: string;
+  messages: ApiMessage[];
   last_message: string;
-  last_message_date: string;
-  participants: string[];
+  last_updated: string;
+  unread: boolean;
 };
 
-type User = {
+type ApiMessage = {
+  id: string;
+  role: string;
+  message: string;
+  timestamp: string;
+};
+
+type Customer = {
   id: string;
   name: string;
-  role: string;
 };
 
 // Frontend types for inbox layout
 type Conversation = {
   id: string;
-  title: string;
+  title: string; // Using customer name as title
   lastMessage: string;
   date: Date;
   unread: boolean;
-  participants: string[];
   campaignId: string;
+  customerId: string;
 };
 
 type Message = {
   id: string;
   conversationId: string;
-  sender: string;
+  sender: string; // 'user' or 'system'
   text: string;
   timestamp: Date;
 };
@@ -79,7 +85,7 @@ export default function PromotionPage() {
   // Frontend conversations state (transformed from API data)
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  // Sample messages mapped by conversation id (would come from API in a real app)
+  // Messages mapped by conversation id
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
 
   const [selectedConversation, setSelectedConversation] = useState<string>("");
@@ -98,16 +104,24 @@ export default function PromotionPage() {
         // Set campaigns from API
         setCampaigns(data.campaigns);
 
+        // Extract all conversations from all campaigns
+        const allConversations: ApiConversation[] = [];
+        data.campaigns.forEach((campaign) => {
+          if (campaign.conversations) {
+            allConversations.push(...campaign.conversations);
+          }
+        });
+
         // Transform API conversations to frontend format
-        const transformedConversations: Conversation[] = data.conversations.map(
+        const transformedConversations: Conversation[] = allConversations.map(
           (conv) => ({
             id: conv.id,
-            title: conv.title,
+            title: conv.customer_name, // Using customer name as the title
             lastMessage: conv.last_message,
-            date: new Date(conv.last_message_date),
-            unread: false, // This would come from user state in a real app
-            participants: conv.participants,
+            date: new Date(conv.last_updated),
+            unread: conv.unread,
             campaignId: conv.campaign_id,
+            customerId: conv.customer_id,
           })
         );
 
@@ -122,6 +136,19 @@ export default function PromotionPage() {
         if (transformedConversations.length > 0 && !selectedConversation) {
           setSelectedConversation(transformedConversations[0].id);
         }
+
+        // Transform messages for each conversation
+        const messageMap: Record<string, Message[]> = {};
+        allConversations.forEach((conv) => {
+          messageMap[conv.id] = conv.messages.map((msg) => ({
+            id: msg.id,
+            conversationId: conv.id,
+            sender: msg.role, // 'user' or 'system'
+            text: msg.message,
+            timestamp: new Date(msg.timestamp),
+          }));
+        });
+        setMessages(messageMap);
 
         setError(null);
       } catch (err) {
@@ -220,7 +247,7 @@ export default function PromotionPage() {
         >
           {campaigns.map((campaign) => (
             <option key={campaign.id} value={campaign.id}>
-              {campaign.name}
+              {campaign.name} - {campaign.description}
             </option>
           ))}
         </select>
@@ -236,35 +263,28 @@ export default function PromotionPage() {
         <div className="w-1/3 border-r border-gray-200">
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800">
-              Conversations
+              Customer Conversations
             </h2>
           </div>
           <div className="overflow-y-auto h-full">
             {filteredConversations.map((conv) => (
               <div
                 key={conv.id}
-                className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
+                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
                   selectedConversation === conv.id ? "bg-blue-50" : ""
-                }`}
+                } ${conv.unread ? "font-semibold" : ""}
+                `}
                 onClick={() => handleConversationSelect(conv.id)}
               >
-                <div className="flex justify-between">
-                  <h3 className="font-medium text-gray-900">
-                    {conv.title}
-                    {conv.unread && (
-                      <span className="ml-2 w-2 h-2 bg-blue-600 rounded-full inline-block"></span>
-                    )}
-                  </h3>
-                  <span className="text-xs text-gray-500">
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm text-gray-500">
                     {format(conv.date, "MMM d")}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 truncate">
-                  {conv.lastMessage}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {conv.participants.join(", ")}
-                </p>
+                <div className="flex flex-col">
+                  <div className="font-semibold text-gray-800">{conv.title}</div>
+                  <div className="text-sm text-gray-500 truncate">{conv.lastMessage}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -279,38 +299,36 @@ export default function PromotionPage() {
                   {currentConversation.title}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  {currentConversation.participants.join(", ")}
+                  Campaign: {campaigns.find(c => c.id === currentConversation.campaignId)?.name || 'Unknown'}
                 </p>
               </div>
-              <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                {currentMessages.map((msg) => (
+              
+              {/* Message Content */}
+              <div className="flex-1 p-4 overflow-y-auto">
+                {currentMessages.map((message) => (
                   <div
-                    key={msg.id}
-                    className={`flex ${
-                      msg.sender === "You" ? "justify-end" : "justify-start"
+                    key={message.id}
+                    className={`mb-4 ${
+                      message.sender === "user"
+                        ? "flex justify-end"
+                        : "flex justify-start"
                     }`}
                   >
                     <div
-                      className={`p-3 rounded-lg max-w-xs ${
-                        msg.sender === "You"
-                          ? "bg-blue-600 text-white"
+                      className={`max-w-[70%] rounded-lg p-3 ${
+                        message.sender === "user"
+                          ? "bg-blue-500 text-white"
                           : "bg-gray-200 text-gray-800"
                       }`}
                     >
-                      <p className="text-sm">{msg.text}</p>
-                      <span className="text-xs text-gray-500 mt-1 block">
-                        {format(msg.timestamp, "p")}
-                      </span>
+                      <div className="font-medium mb-1">{message.sender === "user" ? "Customer" : "System"}</div>
+                      <div>{message.text}</div>
+                      <div className="text-xs mt-1 opacity-70">
+                        {format(message.timestamp, "h:mm a, MMM d")}
+                      </div>
                     </div>
                   </div>
                 ))}
-              </div>
-              <div className="p-4 border-t border-gray-200">
-                <input
-                  type="text"
-                  placeholder="Type a message"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
               </div>
             </>
           ) : (

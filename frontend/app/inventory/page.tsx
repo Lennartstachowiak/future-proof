@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
 import ProgressBar from "../components/ui/ProgressBar";
 import SearchBar from "../components/ui/SearchBar";
 import { useRestaurant } from "../context/RestaurantContext";
@@ -12,12 +11,10 @@ import { apiGet } from "../utils/api";
 
 type InventoryItem = {
   id: string;
-  name: string;
+  item: string;
+  amount: number;
   category: string;
-  current_quantity: number;
   unit: string;
-  minimum_threshold: number;
-  status: "low" | "sufficient" | "excess";
 };
 
 type InventoryResponse = {
@@ -31,6 +28,7 @@ export default function InventoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const { selectedRestaurant } = useRestaurant();
 
@@ -61,36 +59,18 @@ export default function InventoryPage() {
     return [...new Set(categories)];
   };
 
-  // Convert inventory status to appropriate Badge variant
-  const getStatusBadgeVariant = (
-    status: string
-  ): "success" | "warning" | "error" | "info" => {
-    switch (status) {
-      case "low":
-        return "error";
-      case "sufficient":
-        return "success";
-      case "excess":
-        return "warning";
-      default:
-        return "info";
-    }
-  };
-
-  // Convert inventory status to appropriate ProgressBar color
-  const getProgressBarColor = (
-    item: InventoryItem
-  ): "success" | "warning" | "error" => {
-    const ratio = item.current_quantity / item.minimum_threshold;
-    if (ratio < 1) return "error";
-    if (ratio > 2) return "warning";
-    return "success";
-  };
-
-  const filteredInventory =
-    selectedCategory === "all"
-      ? inventory
-      : inventory.filter((item) => item.category === selectedCategory);
+  const filteredInventory = inventory
+    // Filter by category if not 'all'
+    .filter(item => selectedCategory === "all" || item.category === selectedCategory)
+    // Filter by search term
+    .filter(item => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      return (
+        item.item.toLowerCase().includes(search) || 
+        item.category.toLowerCase().includes(search)
+      );
+    });
 
   if (isLoading) {
     return (
@@ -149,7 +129,8 @@ export default function InventoryPage() {
         <SearchBar
           placeholder="Search inventory..."
           className="w-64"
-          // Implementation would require adding search functionality
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
@@ -163,19 +144,10 @@ export default function InventoryPage() {
             <thead>
               <tr className="bg-[#f9fafb]">
                 <th className="px-6 py-3 text-left text-xs font-[500] text-neutral-500 uppercase tracking-wider">
-                  Item
+                  Item & Category
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-[500] text-neutral-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-[500] text-neutral-500 uppercase tracking-wider">
-                  Current Quantity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-[500] text-neutral-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-[500] text-neutral-500 uppercase tracking-wider">
-                  Actions
+                  Quantity
                 </th>
               </tr>
             </thead>
@@ -188,38 +160,22 @@ export default function InventoryPage() {
                   }
                 >
                   <td className="px-6 py-4">
-                    <div className="font-[500]">{item.name}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-neutral-600">{item.category}</div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{item.item}</h3>
+                      <p className="text-sm text-gray-500">{item.category}</p>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="mb-1 flex justify-between">
-                      <span>
-                        {item.current_quantity} {item.unit}
-                      </span>
-                      <span className="text-neutral-500 text-sm">
-                        Min: {item.minimum_threshold} {item.unit}
+                      <span className="font-medium">
+                        {item.amount} {item.unit}
                       </span>
                     </div>
                     <ProgressBar
-                      value={
-                        (item.current_quantity / item.minimum_threshold) * 50
-                      }
+                      value={item.amount}
                       max={100}
-                      color={getProgressBarColor(item)}
+                      color={"success"}
                     />
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant={getStatusBadgeVariant(item.status)}>
-                      {item.status.charAt(0).toUpperCase() +
-                        item.status.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Button variant="outline" size="sm">
-                      Update
-                    </Button>
                   </td>
                 </tr>
               ))}
