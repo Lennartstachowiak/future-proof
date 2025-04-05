@@ -1,9 +1,10 @@
 import json
 import logging
 import os
+from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from app.db.models import Restaurant, Inventory, Campaign, Customer, Conversation, Messages
+from app.db.models import Restaurant, Inventory, Campaign, Customer, Conversation, Messages, RestaurantCustomer
 from app.db.base_class import Base
 
 logger = logging.getLogger(__name__)
@@ -76,7 +77,19 @@ def load_dummy_data(db: Session, json_file_path: str):
         for campaign_data in data.get('campaigns', []):
             # Assuming we're using the first restaurant for all campaigns
             restaurant = list(restaurants_dict.values())[0]
-            campaign = Campaign(restaurant_id=restaurant.id)
+            # Parse timestamps if provided
+            created_at = None
+            updated_at = None
+            if 'created_at' in campaign_data:
+                created_at = datetime.fromisoformat(campaign_data['created_at'].replace('Z', '+00:00'))
+            if 'updated_at' in campaign_data:
+                updated_at = datetime.fromisoformat(campaign_data['updated_at'].replace('Z', '+00:00'))
+            
+            campaign = Campaign(
+                restaurant_id=restaurant.id,
+                created_at=created_at,
+                updated_at=updated_at
+            )
             db.add(campaign)
             db.flush()  # Flush to get the ID
             campaigns_dict[campaign_data['name']] = campaign
@@ -90,6 +103,29 @@ def load_dummy_data(db: Session, json_file_path: str):
             db.flush()  # Flush to get the ID
             customers_dict[customer.name] = customer
             logger.info(f"Created customer: {customer.name}")
+            
+        # Create restaurant-customer associations
+        logger.info("Creating restaurant-customer associations...")
+        for association_data in data.get('restaurant_customers', []):
+            restaurant = restaurants_dict[association_data['restaurant_name']]
+            customer = customers_dict[association_data['customer_name']]
+            
+            # Parse timestamps if provided
+            created_at = None
+            updated_at = None
+            if 'created_at' in association_data:
+                created_at = datetime.fromisoformat(association_data['created_at'].replace('Z', '+00:00'))
+            if 'updated_at' in association_data:
+                updated_at = datetime.fromisoformat(association_data['updated_at'].replace('Z', '+00:00'))
+            
+            association = RestaurantCustomer(
+                restaurant_id=restaurant.id,
+                customer_id=customer.id,
+                created_at=created_at,
+                updated_at=updated_at
+            )
+            db.add(association)
+            logger.info(f"Created association between restaurant {restaurant.name} and customer {customer.name}")
 
         # Create conversations and messages
         logger.info("Creating conversations and messages...")
@@ -97,9 +133,19 @@ def load_dummy_data(db: Session, json_file_path: str):
             campaign = campaigns_dict[conversation_data['campaign_name']]
             customer = customers_dict[conversation_data['customer_name']]
 
+            # Parse timestamps if provided
+            created_at = None
+            updated_at = None
+            if 'created_at' in conversation_data:
+                created_at = datetime.fromisoformat(conversation_data['created_at'].replace('Z', '+00:00'))
+            if 'updated_at' in conversation_data:
+                updated_at = datetime.fromisoformat(conversation_data['updated_at'].replace('Z', '+00:00'))
+            
             conversation = Conversation(
                 campaign_id=campaign.id,
-                customer_id=customer.id
+                customer_id=customer.id,
+                created_at=created_at,
+                updated_at=updated_at
             )
             db.add(conversation)
             db.flush()  # Flush to get the ID
@@ -109,10 +155,20 @@ def load_dummy_data(db: Session, json_file_path: str):
 
             # Create messages for this conversation
             for message_data in conversation_data.get('messages', []):
+                # Parse timestamps if provided
+                created_at = None
+                updated_at = None
+                if 'created_at' in message_data:
+                    created_at = datetime.fromisoformat(message_data['created_at'].replace('Z', '+00:00'))
+                if 'updated_at' in message_data:
+                    updated_at = datetime.fromisoformat(message_data['updated_at'].replace('Z', '+00:00'))
+                
                 message = Messages(
                     conversation_id=conversation.id,
                     role=message_data['role'],
-                    message=message_data['message']
+                    message=message_data['message'],
+                    created_at=created_at,
+                    updated_at=updated_at
                 )
                 db.add(message)
                 logger.info(f"Created message: {message.message[:30]}...")

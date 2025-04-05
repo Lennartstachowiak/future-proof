@@ -6,62 +6,66 @@
   ],
   "inventory": [
     {
-      "item": "Lettuce", 
+      "item": "Lettuce",
       "amount": 50
     },
     {
-      "item": "Tomatoes", 
+      "item": "Tomatoes",
       "amount": 40
     },
     {
-      "item": "Onions", 
+      "item": "Onions",
       "amount": 30
     },
     {
-      "item": "Beef Patties", 
+      "item": "Beef Patties",
       "amount": 60
     },
     {
-      "item": "Burger Buns", 
+      "item": "Burger Buns",
       "amount": 70
     },
     {
-      "item": "Cheese", 
+      "item": "Cheese",
       "amount": 45
     },
     {
-      "item": "Pizza Dough", 
+      "item": "Pizza Dough",
       "amount": 25
     },
     {
-      "item": "Pizza Sauce", 
+      "item": "Pizza Sauce",
       "amount": 20
     },
     {
-      "item": "Pepperoni", 
+      "item": "Pepperoni",
       "amount": 35
     },
     {
-      "item": "Ice Cream Base", 
+      "item": "Ice Cream Base",
       "amount": 15
     },
     {
-      "item": "Chocolate Syrup", 
+      "item": "Chocolate Syrup",
       "amount": 10
     },
     {
-      "item": "Strawberries", 
+      "item": "Strawberries",
       "amount": 25
     }
   ],
   "campaigns": [
     {
       "name": "Summer Special",
-      "description": "20% off on all ice cream products"
+      "description": "20% off on all ice cream products",
+      "created_at": "2025-04-01T10:00:00Z",
+      "updated_at": "2025-04-01T10:00:00Z"
     },
     {
       "name": "Burger Bonanza",
-      "description": "Buy one burger, get one free"
+      "description": "Buy one burger, get one free",
+      "created_at": "2025-04-03T14:30:00Z",
+      "updated_at": "2025-04-03T14:30:00Z"
     }
   ],
   "customers": [
@@ -81,94 +85,166 @@
       "name": "Robert Wilson"
     }
   ],
+  "restaurant_customers": [
+    {
+      "restaurant_name": "Tasty Bites",
+      "customer_name": "John Smith",
+      "created_at": "2025-04-01T11:30:00Z",
+      "updated_at": "2025-04-01T11:30:00Z"
+    },
+    {
+      "restaurant_name": "Tasty Bites",
+      "customer_name": "Emily Johnson",
+      "created_at": "2025-04-01T14:45:00Z",
+      "updated_at": "2025-04-01T14:45:00Z"
+    },
+    {
+      "restaurant_name": "Tasty Bites",
+      "customer_name": "Michael Brown",
+      "created_at": "2025-04-02T09:15:00Z",
+      "updated_at": "2025-04-02T09:15:00Z"
+    },
+    {
+      "restaurant_name": "Tasty Bites",
+      "customer_name": "Sarah Davis",
+      "created_at": "2025-04-03T16:20:00Z",
+      "updated_at": "2025-04-03T16:20:00Z"
+    },
+    {
+      "restaurant_name": "Tasty Bites",
+      "customer_name": "Robert Wilson",
+      "created_at": "2025-04-04T10:30:00Z",
+      "updated_at": "2025-04-04T10:30:00Z"
+    }
+  ],
   "conversations": [
     {
       "campaign_name": "Summer Special",
       "customer_name": "John Smith",
+      "created_at": "2025-04-02T09:15:00Z",
+      "updated_at": "2025-04-02T09:30:00Z",
       "messages": [
         {
           "role": "system",
-          "message": "Promotion: 20% off on all ice cream products this weekend!"
+          "message": "Promotion: 20% off on all ice cream products this weekend!",
+          "created_at": "2025-04-02T09:15:00Z",
+          "updated_at": "2025-04-02T09:15:00Z"
         },
         {
           "role": "user",
-          "message": "Is this valid for takeaway orders too?"
+          "message": "Is this valid for takeaway orders too?",
+          "created_at": "2025-04-02T09:20:00Z",
+          "updated_at": "2025-04-02T09:20:00Z"
         },
         {
           "role": "system",
-          "message": "Yes, the discount applies to both dine-in and takeaway orders."
+          "message": "Yes, the discount applies to both dine-in and takeaway orders.",
+          "created_at": "2025-04-02T09:30:00Z",
+          "updated_at": "2025-04-02T09:30:00Z"
         }
       ]
     },
     {
       "campaign_name": "Summer Special",
       "customer_name": "Emily Johnson",
+      "created_at": "2025-04-02T11:45:00Z",
+      "updated_at": "2025-04-02T12:05:00Z",
       "messages": [
         {
           "role": "system",
-          "message": "Promotion: 20% off on all ice cream products this weekend!"
+          "message": "Promotion: 20% off on all ice cream products this weekend!",
+          "created_at": "2025-04-02T09:15:00Z",
+          "updated_at": "2025-04-02T09:15:00Z"
         },
         {
           "role": "user",
-          "message": "Do you have dairy-free options available?"
+          "message": "Do you have dairy-free options available?",
+          "created_at": "2025-04-02T11:55:00Z",
+          "updated_at": "2025-04-02T11:55:00Z"
         },
         {
           "role": "system",
-          "message": "Yes, we have several dairy-free ice cream flavors that are included in this promotion."
+          "message": "Yes, we have several dairy-free ice cream flavors that are included in this promotion.",
+          "created_at": "2025-04-02T12:05:00Z",
+          "updated_at": "2025-04-02T12:05:00Z"
         }
       ]
     },
     {
       "campaign_name": "Summer Special",
       "customer_name": "Michael Brown",
+      "created_at": "2025-04-02T14:30:00Z",
+      "updated_at": "2025-04-02T14:30:00Z",
       "messages": [
         {
           "role": "system",
-          "message": "Promotion: 20% off on all ice cream products this weekend!"
+          "message": "Promotion: 20% off on all ice cream products this weekend!",
+          "created_at": "2025-04-02T14:30:00Z",
+          "updated_at": "2025-04-02T14:30:00Z"
         }
       ]
     },
     {
       "campaign_name": "Burger Bonanza",
       "customer_name": "Sarah Davis",
+      "created_at": "2025-04-04T10:15:00Z",
+      "updated_at": "2025-04-04T10:45:00Z",
       "messages": [
         {
           "role": "system",
-          "message": "Promotion: Buy one burger, get one free this month!"
+          "message": "Promotion: Buy one burger, get one free this month!",
+          "created_at": "2025-04-04T10:15:00Z",
+          "updated_at": "2025-04-04T10:15:00Z"
         },
         {
           "role": "user",
-          "message": "Can I mix and match different burger types?"
+          "message": "Can I mix and match different burger types?",
+          "created_at": "2025-04-04T10:20:00Z",
+          "updated_at": "2025-04-04T10:20:00Z"
         },
         {
           "role": "system",
-          "message": "Yes, you can choose any two burgers from our menu for this promotion."
+          "message": "Yes, you can choose any two burgers from our menu for this promotion.",
+          "created_at": "2025-04-04T10:25:00Z",
+          "updated_at": "2025-04-04T10:25:00Z"
         },
         {
           "role": "user",
-          "message": "Great! Is there a limit to how many times I can use this offer?"
+          "message": "Great! Is there a limit to how many times I can use this offer?",
+          "created_at": "2025-04-04T10:35:00Z",
+          "updated_at": "2025-04-04T10:35:00Z"
         },
         {
           "role": "system",
-          "message": "The offer can be used once per visit, but you can visit as many times as you'd like during the promotion period."
+          "message": "The offer can be used once per visit, but you can visit as many times as you'd like during the promotion period.",
+          "created_at": "2025-04-04T10:45:00Z",
+          "updated_at": "2025-04-04T10:45:00Z"
         }
       ]
     },
     {
       "campaign_name": "Burger Bonanza",
       "customer_name": "Robert Wilson",
+      "created_at": "2025-04-04T15:20:00Z",
+      "updated_at": "2025-04-04T15:30:00Z",
       "messages": [
         {
           "role": "system",
-          "message": "Promotion: Buy one burger, get one free this month!"
+          "message": "Promotion: Buy one burger, get one free this month!",
+          "created_at": "2025-04-04T15:20:00Z",
+          "updated_at": "2025-04-04T15:20:00Z"
         },
         {
           "role": "user",
-          "message": "Does this include sides as well?"
+          "message": "Does this include sides as well?",
+          "created_at": "2025-04-04T15:25:00Z",
+          "updated_at": "2025-04-04T15:25:00Z"
         },
         {
           "role": "system",
-          "message": "No, the promotion is only for burgers. Sides are sold separately."
+          "message": "No, the promotion is only for burgers. Sides are sold separately.",
+          "created_at": "2025-04-04T15:30:00Z",
+          "updated_at": "2025-04-04T15:30:00Z"
         }
       ]
     }

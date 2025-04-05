@@ -185,7 +185,10 @@ export default function PromotionPage() {
   const currentConversation = conversations.find(
     (c) => c.id === selectedConversation
   );
-  const currentMessages = messages[selectedConversation] || [];
+  // Sort messages by timestamp in chronological order
+  const currentMessages = messages[selectedConversation] 
+    ? [...messages[selectedConversation]].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+    : [];
 
   // Loading state
   if (isLoading) {

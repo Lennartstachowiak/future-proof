@@ -79,9 +79,9 @@ async def get_restaurant_campaigns(
                     id=msg.id,
                     role=msg.role,
                     message=msg.message,
-                    timestamp=datetime.now() - timedelta(days=i)  # Placeholder timestamps
+                    timestamp=msg.created_at
                 )
-                for i, msg in enumerate(messages_data)
+                for msg in messages_data
             ]
 
             # Create conversation object
