@@ -14,7 +14,7 @@ from app.schemas.inventory_forecast import (
 )
 from app.api.api_v1.endpoints.forecast import make_prediction_df
 from app.db.session import get_db
-from app.db.models import Restaurant, Inventory
+from app.db.models import Restaurant, Inventory, Order, RestaurantOrder
 
 router = APIRouter()
 
@@ -85,13 +85,35 @@ async def get_inventory_forecast(
 
     # Get all inventory items for this restaurant
     inventory_items = db.query(Inventory).filter(Inventory.restaurant_id == restaurant_id).all()
-
+    
+    # Get all orders for this restaurant's inventory items
+    restaurant_orders = db.query(RestaurantOrder).filter(RestaurantOrder.restaurant_id == restaurant_id).all()
+    order_ids = [ro.order_id for ro in restaurant_orders]
+    
+    # Get order details for these orders
+    orders = []
+    if order_ids:
+        orders = db.query(Order).filter(Order.id.in_(order_ids)).all()
+    
+    # Create a dictionary of ordered items by inventory_id
+    order_by_inventory_id = {}
+    for order in orders:
+        if order.inventory_id in order_by_inventory_id:
+            order_by_inventory_id[order.inventory_id] += order.order_amount
+        else:
+            order_by_inventory_id[order.inventory_id] = order.order_amount
+    
     # Convert inventory to dictionary for easy lookup
     current_inventory = {}
     for item in inventory_items:
+        # Check if there are orders for this inventory item
+        ordered_amount = order_by_inventory_id.get(item.id, 0)
+        
         current_inventory[item.item] = {
-            "amount": item.amount,
-            "unit": item.unit  # Use the actual unit from the database
+            # Include both current inventory and ordered amount
+            "amount": item.amount + ordered_amount,
+            "unit": item.unit,
+            "ordered": ordered_amount  # Track ordered amount separately for display
         }
 
     # Get forecast data
@@ -144,13 +166,18 @@ async def get_inventory_forecast(
             
         difference = current_amount - required["amount"]
         
+        # Get ordered amount (if any)
+        ordered_amount = current_inventory[item_name].get("ordered", 0)
+        
+        # Create InventoryForecastItem
         forecast_item = InventoryForecastItem(
             item=item_name,
             current_amount=current_amount,
             required_amount=int(required["amount"]),
             difference=int(difference),
             unit=required["unit"],
-            menu_items=required["menu_items"]
+            menu_items=required["menu_items"],
+            ordered_amount=ordered_amount  # Include ordered amount for display
         )
         
         # Add to appropriate list

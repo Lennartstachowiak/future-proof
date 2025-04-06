@@ -21,11 +21,12 @@ class RestaurantInventoryItem(BaseModel):
     id: str
     item: str
     amount: int
+    ordered_amount: int = 0  # Amount that has been ordered but not received yet
     category: Optional[str] = None
     unit: Optional[str] = "units"
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Renamed from orm_mode in Pydantic v2
 
 
 class RestaurantInventoryResponse(BaseModel):

@@ -13,6 +13,7 @@ type InventoryItem = {
   id: string;
   item: string;
   amount: number;
+  ordered_amount: number;
   category: string;
   unit: string;
 };
@@ -147,7 +148,10 @@ export default function InventoryPage() {
                   Item & Category
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-[500] text-neutral-500 uppercase tracking-wider">
-                  Quantity
+                  In Stock
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-[500] text-neutral-500 uppercase tracking-wider">
+                  On Order
                 </th>
               </tr>
             </thead>
@@ -166,7 +170,7 @@ export default function InventoryPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="mb-1 flex justify-between">
+                    <div className="mb-1">
                       <span className="font-medium">
                         {item.amount} {item.unit}
                       </span>
@@ -176,6 +180,17 @@ export default function InventoryPage() {
                       max={100}
                       color={"success"}
                     />
+                  </td>
+                  <td className="px-6 py-4">
+                    {item.ordered_amount > 0 ? (
+                      <div className="mb-1">
+                        <span className="font-medium text-green-600">
+                          {item.ordered_amount} {item.unit}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">None</span>
+                    )}
                   </td>
                 </tr>
               ))}

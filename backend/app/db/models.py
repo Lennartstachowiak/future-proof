@@ -19,6 +19,7 @@ class Restaurant(Base):
     inventories = relationship("Inventory", back_populates="restaurant")
     campaigns = relationship("Campaign", back_populates="restaurant")
     customer_associations = relationship("RestaurantCustomer", back_populates="restaurant")
+    restaurant_orders = relationship("RestaurantOrder", back_populates="restaurant")
 
 
 class Inventory(Base):
@@ -54,8 +55,8 @@ class RestaurantCustomer(Base):
     __table_args__ = (UniqueConstraint('restaurant_id', 'customer_id', name='uix_restaurant_customer'),)
     
     # Relationships
-    restaurant = relationship("Restaurant", backref="customer_associations")
-    customer = relationship("Customer", backref="restaurant_associations")
+    restaurant = relationship("Restaurant", back_populates="customer_associations")
+    customer = relationship("Customer", back_populates="restaurant_associations")
     
     
 class Order(Base):
@@ -66,6 +67,7 @@ class Order(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
     inventory = relationship("Inventory", backref="orders")
+    restaurant_orders = relationship("RestaurantOrder", back_populates="order")
     
     
 class RestaurantOrder(Base):
@@ -79,8 +81,8 @@ class RestaurantOrder(Base):
     __table_args__ = (UniqueConstraint('restaurant_id', 'order_id', name='uix_restaurant_order'),)
     
     # Relationships
-    restaurant = relationship("Restaurant", backref="restaurant_orders")
-    order = relationship("Order", backref="restaurant_orders")
+    restaurant = relationship("Restaurant", back_populates="restaurant_orders")
+    order = relationship("Order", back_populates="restaurant_orders")
 
 
 class Customer(Base):

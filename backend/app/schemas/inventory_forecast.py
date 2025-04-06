@@ -9,6 +9,7 @@ class InventoryForecastItem(BaseModel):
     difference: int  # negative means shortage, positive means excess
     unit: str = "units"
     menu_items: List[str] = []  # List of menu items that require this ingredient
+    ordered_amount: int = 0  # Amount of this item that has been ordered but not yet received
 
 class PromotionRecommendation(BaseModel):
     menu_item: str

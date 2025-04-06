@@ -5,7 +5,6 @@ import DashboardLayout from "../components/layout/DashboardLayout";
 import { apiGet } from "../utils/api";
 import ForecastChart from "./components/ForecastChart";
 import { LoadingState, ErrorState } from "./components/ForecastStatus";
-import ForecastSummary from "./components/ForecastSummary";
 import InventoryForecast from "./components/InventoryForecast";
 import { ForecastItem, ForecastData } from "./types";
 
@@ -103,12 +102,6 @@ export default function ForecastPage() {
       title="Sales Forecast"
       subtitle="Predicted sales for the next 5 days"
     >
-      {/* Summary Cards */}
-      <ForecastSummary
-        forecastData={forecastData}
-        getColorForItem={getColorForItem}
-      />
-
       {/* Chart */}
       <ForecastChart
         chartData={chartData}
