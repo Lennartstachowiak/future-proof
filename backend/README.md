@@ -12,6 +12,7 @@ A powerful REST API backend for the Future-Proof restaurant inventory prediction
   - [Manual Installation](#manual-installation)
 - [Database](#database)
   - [Models](#models)
+  - [Entity Relationship Diagram (ERD)](#entity-relationship-diagram-erd)
   - [Migrations](#migrations)
   - [Seeding](#seeding)
 - [API Endpoints](#api-endpoints)
@@ -142,6 +143,20 @@ The application uses the following key database models:
 - **Conversation**: Conversations for campaigns
 - **Messages**: Messages in conversations
 - **Order**: Orders for inventory items
+
+### Entity Relationship Diagram (ERD)
+
+![Entity Relationship Diagram](app/db/erd.png)
+
+*For a clearer view, see the ERD file in the db directory*
+
+This diagram illustrates the relationships between the main entities in the system:
+
+- A **Restaurant** has many **Inventory** items and **Campaigns**
+- A **Campaign** has many **Conversations** with **Customers**
+- Each **Conversation** contains **Messages**
+- **Orders** are placed for **Inventory** items
+- **RestaurantCustomer** and **RestaurantOrder** are junction tables that manage many-to-many relationships
 
 ### Migrations
 
