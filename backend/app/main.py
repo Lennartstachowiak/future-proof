@@ -30,6 +30,7 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     logger.info("Initializing database...")
+    logger.info("Note: If the database is empty, it will be automatically seeded with sample data")
     success = init_db(max_retries=30, retry_interval=2)  # More retries with longer interval
     if success:
         logger.info("Database initialized successfully!")
