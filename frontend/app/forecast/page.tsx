@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { apiGet } from "../utils/api";
 import ForecastChart from "./components/ForecastChart";
-import ForecastTable from "./components/ForecastTable";
 import { LoadingState, ErrorState } from "./components/ForecastStatus";
 import ForecastSummary from "./components/ForecastSummary";
+import InventoryForecast from "./components/InventoryForecast";
 import { ForecastItem, ForecastData } from "./types";
 
 export default function ForecastPage() {
@@ -14,31 +14,31 @@ export default function ForecastPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchForecast = async () => {
-      try {
-        const data = await apiGet<ForecastData>("api/v1/forecast");
+  const fetchForecast = useCallback(async () => {
+    try {
+      const data = await apiGet<ForecastData>("api/v1/forecast");
 
-        const processedData = data.items.map((item) => ({
-          ...item,
-          item_name: item.item_name
-            .split("_")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" "),
-          predicted_quantity: Math.round(item.predicted_quantity),
-        }));
+      const processedData = data.items.map((item) => ({
+        ...item,
+        item_name: item.item_name
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" "),
+        predicted_quantity: Math.round(item.predicted_quantity),
+      }));
 
-        setForecastData(processedData);
-        setIsLoading(false);
-      } catch (err) {
-        setError("Failed to fetch forecast data");
-        setIsLoading(false);
-        console.error(err);
-      }
-    };
-
-    fetchForecast();
+      setForecastData(processedData);
+      setIsLoading(false);
+    } catch (err) {
+      setError("Failed to fetch forecast data");
+      setIsLoading(false);
+      console.error(err);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchForecast();
+  }, [fetchForecast]);
 
   const uniqueItems = Array.from(
     new Set(forecastData.map((item) => item.item_name))
@@ -64,7 +64,12 @@ export default function ForecastPage() {
   };
 
   if (isLoading) {
-    return <LoadingState title="Loading..." subtitle="Please wait while we load your forecast data" />;
+    return (
+      <LoadingState
+        title="Loading..."
+        subtitle="Please wait while we load your forecast data"
+      />
+    );
   }
 
   if (error) {
@@ -99,23 +104,20 @@ export default function ForecastPage() {
       subtitle="Predicted sales for the next 5 days"
     >
       {/* Summary Cards */}
-      <ForecastSummary 
-        forecastData={forecastData} 
-        getColorForItem={getColorForItem} 
+      <ForecastSummary
+        forecastData={forecastData}
+        getColorForItem={getColorForItem}
       />
 
       {/* Chart */}
-      <ForecastChart 
-        chartData={chartData} 
-        uniqueItems={uniqueItems} 
-        getColorForItem={getColorForItem} 
+      <ForecastChart
+        chartData={chartData}
+        uniqueItems={uniqueItems}
+        getColorForItem={getColorForItem}
       />
 
-      {/* Table */}
-      <ForecastTable 
-        forecastData={forecastData} 
-        getColorForItem={getColorForItem} 
-      />
+      {/* Inventory Forecast */}
+      <InventoryForecast />
     </DashboardLayout>
   );
 }

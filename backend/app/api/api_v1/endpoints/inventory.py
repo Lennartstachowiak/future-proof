@@ -54,7 +54,7 @@ async def get_restaurant_inventory(
             item=item.item,
             amount=item.amount,
             category=category,
-            unit="units"  # Default unit, could be customized based on item type
+            unit=item.unit
         )
         items.append(inventory_item)
 

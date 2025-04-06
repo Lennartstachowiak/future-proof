@@ -10,25 +10,27 @@ from app.db.base_class import Base
 logger = logging.getLogger(__name__)
 
 # Create a custom database connection
+
+
 def create_db_connection():
     """Create a custom database connection for seeding the database."""
     # Database connection parameters
     POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
-    POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")  # Use localhost for direct connection
+    POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
     POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
     POSTGRES_DB = os.getenv("POSTGRES_DB", "restaurant_app")
-    
+
     # Create database URL
     SQLALCHEMY_DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
-    
+
     # Create engine and session
     engine = create_engine(SQLALCHEMY_DATABASE_URL)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
+
     # Create tables if they don't exist
     Base.metadata.create_all(bind=engine)
-    
+
     return SessionLocal()
 
 
@@ -64,10 +66,14 @@ def load_dummy_data(db: Session, json_file_path: str):
             # Assuming we're using the first restaurant for all inventory items
             restaurant = list(restaurants_dict.values())[0]
             for inventory_data in data.get('inventory', []):
+                # Get the unit from the inventory data, default to 'units' if not specified
+                unit = inventory_data.get('unit', 'units')
+
                 inventory = Inventory(
                     restaurant_id=restaurant.id,
                     item=inventory_data['item'],
-                    amount=inventory_data['amount']
+                    amount=inventory_data['amount'],
+                    unit=unit
                 )
                 db.add(inventory)
                 logger.info(f"Created inventory item: {inventory.item}")
@@ -84,7 +90,7 @@ def load_dummy_data(db: Session, json_file_path: str):
                 created_at = datetime.fromisoformat(campaign_data['created_at'].replace('Z', '+00:00'))
             if 'updated_at' in campaign_data:
                 updated_at = datetime.fromisoformat(campaign_data['updated_at'].replace('Z', '+00:00'))
-            
+
             campaign = Campaign(
                 restaurant_id=restaurant.id,
                 created_at=created_at,
@@ -103,13 +109,13 @@ def load_dummy_data(db: Session, json_file_path: str):
             db.flush()  # Flush to get the ID
             customers_dict[customer.name] = customer
             logger.info(f"Created customer: {customer.name}")
-            
+
         # Create restaurant-customer associations
         logger.info("Creating restaurant-customer associations...")
         for association_data in data.get('restaurant_customers', []):
             restaurant = restaurants_dict[association_data['restaurant_name']]
             customer = customers_dict[association_data['customer_name']]
-            
+
             # Parse timestamps if provided
             created_at = None
             updated_at = None
@@ -117,7 +123,7 @@ def load_dummy_data(db: Session, json_file_path: str):
                 created_at = datetime.fromisoformat(association_data['created_at'].replace('Z', '+00:00'))
             if 'updated_at' in association_data:
                 updated_at = datetime.fromisoformat(association_data['updated_at'].replace('Z', '+00:00'))
-            
+
             association = RestaurantCustomer(
                 restaurant_id=restaurant.id,
                 customer_id=customer.id,
@@ -140,7 +146,7 @@ def load_dummy_data(db: Session, json_file_path: str):
                 created_at = datetime.fromisoformat(conversation_data['created_at'].replace('Z', '+00:00'))
             if 'updated_at' in conversation_data:
                 updated_at = datetime.fromisoformat(conversation_data['updated_at'].replace('Z', '+00:00'))
-            
+
             conversation = Conversation(
                 campaign_id=campaign.id,
                 customer_id=customer.id,
@@ -162,7 +168,7 @@ def load_dummy_data(db: Session, json_file_path: str):
                     created_at = datetime.fromisoformat(message_data['created_at'].replace('Z', '+00:00'))
                 if 'updated_at' in message_data:
                     updated_at = datetime.fromisoformat(message_data['updated_at'].replace('Z', '+00:00'))
-                
+
                 message = Messages(
                     conversation_id=conversation.id,
                     role=message_data['role'],
@@ -197,7 +203,7 @@ def seed_db(json_file_path=None):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         json_file_path = os.path.join(current_dir, "dummy_data.json")
         print(f"Using JSON file at: {json_file_path}")
-    
+
     # Create a custom database connection
     db = create_db_connection()
     try:

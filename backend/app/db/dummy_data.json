@@ -6,52 +6,99 @@
   ],
   "inventory": [
     {
-      "item": "Lettuce",
-      "amount": 50
+      "item": "lettuce",
+      "amount": 100000,
+      "unit": "grams"
     },
     {
-      "item": "Tomatoes",
-      "amount": 40
+      "item": "tomato",
+      "amount": 80000,
+      "unit": "grams"
     },
     {
-      "item": "Onions",
-      "amount": 30
+      "item": "onion",
+      "amount": 60000,
+      "unit": "grams"
     },
     {
-      "item": "Beef Patties",
-      "amount": 60
+      "item": "beef patties",
+      "amount": 750,
+      "unit": "piece"
     },
     {
-      "item": "Burger Buns",
-      "amount": 70
+      "item": "burger buns",
+      "amount": 750,
+      "unit": "piece"
     },
     {
-      "item": "Cheese",
-      "amount": 45
+      "item": "cheese",
+      "amount": 70000,
+      "unit": "grams"
     },
     {
-      "item": "Pizza Dough",
-      "amount": 25
+      "item": "pizza dough",
+      "amount": 610,
+      "unit": "piece"
     },
     {
-      "item": "Pizza Sauce",
-      "amount": 20
+      "item": "tomato sauce",
+      "amount": 45110,
+      "unit": "ml"
     },
     {
-      "item": "Pepperoni",
-      "amount": 35
+      "item": "pepperoni",
+      "amount": 30200,
+      "unit": "grams"
     },
     {
-      "item": "Ice Cream Base",
-      "amount": 15
+      "item": "ice cream base",
+      "amount": 21000,
+      "unit": "ml"
     },
     {
-      "item": "Chocolate Syrup",
-      "amount": 10
+      "item": "chocolate syrup",
+      "amount": 1600,
+      "unit": "ml"
     },
     {
-      "item": "Strawberries",
-      "amount": 25
+      "item": "strawberries",
+      "amount": 4500,
+      "unit": "grams"
+    },
+    {
+      "item": "burger sauce",
+      "amount": 12000,
+      "unit": "ml"
+    },
+    {
+      "item": "cucumber",
+      "amount": 35000,
+      "unit": "grams"
+    },
+    {
+      "item": "chicken",
+      "amount": 55000,
+      "unit": "grams"
+    },
+    {
+      "item": "salad dressing",
+      "amount": 25000,
+      "unit": "ml"
+    },
+    {
+      "item": "bell pepper",
+      "amount": 25000,
+      "unit": "grams"
+    },
+    {
+      "item": "sugar",
+      "amount": 5000,
+      "unit": "grams"
+    },
+    {
+      "item": "cream",
+      "amount": 6000,
+      "unit": "ml"
     }
   ],
   "campaigns": [

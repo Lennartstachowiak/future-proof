@@ -26,6 +26,7 @@ class Inventory(Base):
     restaurant_id = Column(String(32), ForeignKey("restaurant.id"), nullable=False, index=True)
     item = Column(String(255), nullable=False)
     amount = Column(Integer, nullable=False)
+    unit = Column(String(20), default="units", nullable=False)
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
@@ -53,8 +54,33 @@ class RestaurantCustomer(Base):
     __table_args__ = (UniqueConstraint('restaurant_id', 'customer_id', name='uix_restaurant_customer'),)
     
     # Relationships
-    restaurant = relationship("Restaurant", back_populates="customer_associations")
-    customer = relationship("Customer", back_populates="restaurant_associations")
+    restaurant = relationship("Restaurant", backref="customer_associations")
+    customer = relationship("Customer", backref="restaurant_associations")
+    
+    
+class Order(Base):
+    id = Column(String(32), primary_key=True, unique=True, default=get_uuid)
+    inventory_id = Column(String(32), ForeignKey("inventory.id"), nullable=False, index=True)
+    order_amount = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    
+    inventory = relationship("Inventory", backref="orders")
+    
+    
+class RestaurantOrder(Base):
+    id = Column(String(32), primary_key=True, unique=True, default=get_uuid)
+    restaurant_id = Column(String(32), ForeignKey("restaurant.id"), nullable=False, index=True)
+    order_id = Column(String(32), ForeignKey("order.id"), nullable=False, index=True)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    
+    # Define a unique constraint to prevent duplicate associations
+    __table_args__ = (UniqueConstraint('restaurant_id', 'order_id', name='uix_restaurant_order'),)
+    
+    # Relationships
+    restaurant = relationship("Restaurant", backref="restaurant_orders")
+    order = relationship("Order", backref="restaurant_orders")
 
 
 class Customer(Base):

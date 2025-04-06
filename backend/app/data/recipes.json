@@ -1,0 +1,46 @@
+{
+  "burger_sales": {
+    "name": "Burger",
+    "ingredients": [
+      {"item": "beef patties", "amount": 1, "unit": "piece"},
+      {"item": "burger buns", "amount": 1, "unit": "piece"},
+      {"item": "lettuce", "amount": 30, "unit": "grams"},
+      {"item": "tomato", "amount": 50, "unit": "grams"},
+      {"item": "cheese", "amount": 20, "unit": "grams"},
+      {"item": "onion", "amount": 20, "unit": "grams"},
+      {"item": "burger sauce", "amount": 15, "unit": "ml"}
+    ]
+  },
+  "salad_sales": {
+    "name": "Salad",
+    "ingredients": [
+      {"item": "lettuce", "amount": 100, "unit": "grams"},
+      {"item": "tomato", "amount": 60, "unit": "grams"},
+      {"item": "cucumber", "amount": 50, "unit": "grams"},
+      {"item": "onion", "amount": 30, "unit": "grams"},
+      {"item": "chicken", "amount": 80, "unit": "grams"},
+      {"item": "salad dressing", "amount": 30, "unit": "ml"}
+    ]
+  },
+  "pizza_sales": {
+    "name": "Pizza",
+    "ingredients": [
+      {"item": "pizza dough", "amount": 1, "unit": "piece"},
+      {"item": "tomato sauce", "amount": 70, "unit": "ml"},
+      {"item": "cheese", "amount": 80, "unit": "grams"},
+      {"item": "pepperoni", "amount": 50, "unit": "grams"},
+      {"item": "onion", "amount": 30, "unit": "grams"},
+      {"item": "bell pepper", "amount": 40, "unit": "grams"}
+    ]
+  },
+  "ice_cream_sales": {
+    "name": "Ice Cream",
+    "ingredients": [
+      {"item": "ice cream base", "amount": 120, "unit": "ml"},
+      {"item": "sugar", "amount": 20, "unit": "grams"},
+      {"item": "cream", "amount": 40, "unit": "ml"},
+      {"item": "strawberries", "amount": 40, "unit": "grams"},
+      {"item": "chocolate syrup", "amount": 15, "unit": "ml"}
+    ]
+  }
+}
