@@ -1,8 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Future-Proof Restaurant Frontend
+
+A modern, interactive web application for restaurant inventory management, sales forecasting, and promotion optimization. This frontend application complements the Future-Proof backend API.
+
+## Table of Contents
+
+- [Technology Stack](#technology-stack)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running the Application](#running-the-application)
+- [Application Routes](#application-routes)
+- [Components](#components)
+- [Context Providers](#context-providers)
+- [API Integration](#api-integration)
+- [Development](#development)
+
+## Technology Stack
+
+- **Next.js 14**: React framework with App Router for modern web development
+- **React 18**: Component-based UI library
+- **TypeScript**: Type-safe programming language
+- **Tailwind CSS**: Utility-first CSS framework
+- **Recharts**: Composable charting library for data visualization
+- **Geist UI**: Clean, modern UI components and typography
+
+## Features
+
+- **Sales Forecasting**: Interactive charts showing predicted sales for menu items
+- **Inventory Management**: Real-time tracking of ingredient levels and usage
+- **Promotion Creation**: Tools to create targeted promotions based on inventory status
+- **Restaurant Selection**: Context-based restaurant selection across the application
+- **Responsive Design**: Mobile-friendly interface that works on all devices
+
+## Project Structure
+
+```
+frontend/
+├── app/                    # App router-based Next.js application
+│   ├── components/         # Shared UI components
+│   │   ├── layout/         # Layout components (Dashboard, Sidebar)
+│   │   └── ui/             # Reusable UI components
+│   ├── context/            # React context providers
+│   │   └── RestaurantContext.tsx # Global restaurant state management
+│   ├── forecast/           # Forecast page and components
+│   │   ├── components/     # Forecast-specific components
+│   │   └── page.tsx        # Forecast page component
+│   ├── inventory/          # Inventory management page
+│   │   └── page.tsx        # Inventory page component
+│   ├── promotion/          # Promotion management page
+│   │   └── page.tsx        # Promotion page component
+│   ├── utils/              # Utility functions
+│   │   └── api.ts          # API integration helpers
+│   ├── layout.tsx          # Root layout component
+│   └── page.tsx            # Home page component
+├── public/                 # Static assets
+├── .gitignore              # Git ignore file
+├── next.config.ts          # Next.js configuration
+├── package.json            # Project dependencies and scripts
+├── postcss.config.mjs      # PostCSS configuration
+├── tailwind.config.js      # Tailwind CSS configuration
+└── tsconfig.json           # TypeScript configuration
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18.0 or later
+- npm, yarn, or pnpm
+- The Future-Proof backend service running (see backend README)
+
+### Installation
+
+1. Clone the repository
+
+2. Navigate to the frontend directory
+
+```bash
+cd future-proof/frontend
+```
+
+3. Install dependencies
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+### Running the Application
+
+Start the development server:
 
 ```bash
 npm run dev
@@ -10,27 +102,67 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Application Routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **/** - Home page/dashboard
+- **/forecast** - Sales forecasting and analytics
+- **/inventory** - Inventory management and tracking
+- **/promotion** - Promotion creation and management
 
-## Learn More
+## Components
 
-To learn more about Next.js, take a look at the following resources:
+### Layout Components
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **DashboardLayout**: Main application layout with sidebar navigation
+- **Sidebar**: Navigation sidebar with links to main sections
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Feature Components
 
-## Deploy on Vercel
+- **ForecastChart**: Interactive chart displaying sales forecasts
+- **InventoryForecast**: Component for showing inventory projections and creating promotions
+- **InventoryList**: List of current inventory items with levels
+- **PromotionForm**: Form for creating new promotional campaigns
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Context Providers
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **RestaurantContext**: Global context for managing restaurant selection and data
+  - Provides the current selected restaurant to all components
+  - Fetches the list of available restaurants from the backend
+  - Allows switching between different restaurants
+
+## API Integration
+
+The frontend communicates with the backend REST API using custom utility functions in `app/utils/api.ts`. These functions handle:  
+
+- API request formatting
+- Error handling
+- Type-safe responses with TypeScript
+- Authentication (when applicable)
+
+The base URL for API requests is configured to connect to the backend service at `http://0.0.0.0:8000`.
+
+## Development
+
+### Running with the Backend
+
+For full functionality, ensure the backend service is running before starting the frontend. The frontend expects the backend to be available at http://0.0.0.0:8000.
+
+### Adding New Features
+
+When adding new features:
+
+1. Create new components in the appropriate directories
+2. Update types in feature-specific type files
+3. Use the RestaurantContext to access the current restaurant
+4. Use the API utility functions for backend communication
+
+### Code Style and Conventions
+
+- Follow TypeScript best practices with proper type definitions
+- Use React Hooks for state management and side effects
+- Follow the component file structure of existing features
+- Use Tailwind CSS for styling components
