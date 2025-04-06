@@ -44,7 +44,3 @@ To get started with the Future-Proof system, you'll need to set up both the back
 - **Backend**: Python, FastAPI, SQLAlchemy, PostgreSQL
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Recharts
 - **Deployment**: Docker and Docker Compose
-
-## Contributing
-
-Contributions to improve Future-Proof are welcome. Please follow the guidelines in the respective backend and frontend documentation for development setup and contribution process.

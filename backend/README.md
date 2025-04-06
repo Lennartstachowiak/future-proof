@@ -212,6 +212,7 @@ python app/db/reset_db.py --seed
 ### API Documentation
 
 The API documentation is available at:
+
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 
@@ -224,7 +225,3 @@ The API documentation is available at:
 ### Auto-Seeding Feature
 
 The application automatically checks if the database is empty during startup. If it is, it will seed the database with sample data to provide a better initial experience.
-
-### Campaign Deduplication
-
-The system uses a unique `campaign_started_id` to prevent duplicate campaigns based on the product name and date. This ensures that promotions aren't accidentally created multiple times for the same product on the same day.

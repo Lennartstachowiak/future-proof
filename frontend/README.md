@@ -136,7 +136,7 @@ The application will be available at http://localhost:3000
 
 ## API Integration
 
-The frontend communicates with the backend REST API using custom utility functions in `app/utils/api.ts`. These functions handle:  
+The frontend communicates with the backend REST API using custom utility functions in `app/utils/api.ts`. These functions handle:
 
 - API request formatting
 - Error handling
@@ -150,19 +150,3 @@ The base URL for API requests is configured to connect to the backend service at
 ### Running with the Backend
 
 For full functionality, ensure the backend service is running before starting the frontend. The frontend expects the backend to be available at http://0.0.0.0:8000.
-
-### Adding New Features
-
-When adding new features:
-
-1. Create new components in the appropriate directories
-2. Update types in feature-specific type files
-3. Use the RestaurantContext to access the current restaurant
-4. Use the API utility functions for backend communication
-
-### Code Style and Conventions
-
-- Follow TypeScript best practices with proper type definitions
-- Use React Hooks for state management and side effects
-- Follow the component file structure of existing features
-- Use Tailwind CSS for styling components
