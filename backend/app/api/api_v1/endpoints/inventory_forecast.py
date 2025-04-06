@@ -14,7 +14,7 @@ from app.schemas.inventory_forecast import (
 )
 from app.api.api_v1.endpoints.forecast import make_prediction_df
 from app.db.session import get_db
-from app.db.models import Restaurant, Inventory, Order, RestaurantOrder
+from app.db.models import Restaurant, Inventory, Order, RestaurantOrder, Campaign
 
 router = APIRouter()
 
@@ -262,13 +262,26 @@ async def get_inventory_forecast(
             # The potential quantity is limited by the ingredient with the least excess
             potential_quantity = min(potential_quantities) if potential_quantities else 0
             
-            recommendation = PromotionRecommendation(
-                menu_item=menu_name,
-                reason=f"Can make {potential_quantity} additional items",
-                potential_quantity=potential_quantity,
-                ingredient_excesses=excess_ingredients
-            )
-            promotion_recommendations.append(recommendation)
+            # Generate a unique campaign_started_id based on menu_item and current date
+            today = datetime.now().strftime('%Y-%m-%d')
+            campaign_started_id = f"{menu_name.lower().replace(' ', '_')}_{today}"
+            
+            # Check if a campaign with this identifier already exists
+            existing_campaign = db.query(Campaign).filter(
+                Campaign.restaurant_id == restaurant_id,
+                Campaign.campaign_started_id == campaign_started_id
+            ).first()
+            
+            # Only add the recommendation if no campaign with this ID exists
+            if not existing_campaign:
+                recommendation = PromotionRecommendation(
+                    menu_item=menu_name,
+                    reason=f"Can make {potential_quantity} additional items",
+                    potential_quantity=potential_quantity,
+                    ingredient_excesses=excess_ingredients,
+                    campaign_started_id=campaign_started_id  # Add the campaign_started_id to the recommendation
+                )
+                promotion_recommendations.append(recommendation)
     
     # Create the summary response
     forecast_summary = InventoryForecastSummary(

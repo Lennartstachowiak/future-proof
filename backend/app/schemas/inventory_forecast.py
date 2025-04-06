@@ -16,6 +16,7 @@ class PromotionRecommendation(BaseModel):
     reason: str  # Why this item is recommended for promotion
     potential_quantity: int  # How many of this item could be produced with excess ingredients
     ingredient_excesses: List[Dict[str, str]]  # Details about excess ingredients
+    campaign_started_id: Optional[str] = None  # Unique identifier for campaign based on date and product
 
 class InventoryForecastSummary(BaseModel):
     shortages: List[InventoryForecastItem]  # Ingredients with shortages

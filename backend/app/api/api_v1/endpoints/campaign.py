@@ -112,6 +112,7 @@ async def send_messages_to_all_customers(customer_ids: List[str], restaurant_id:
 
 class CampaignCreate(BaseModel):
     name: str = None
+    campaign_started_id: str = None
 
 
 @router.post("/{restaurant_id}")
@@ -128,7 +129,23 @@ async def start_campaign(
     new_campaign = Campaign(
         restaurant_id=restaurant_id,
         name=campaign_data.name if campaign_data and campaign_data.name else f"Campaign {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        campaign_started_id=campaign_data.campaign_started_id if campaign_data and campaign_data.campaign_started_id else None,
     )
+    
+    # If a campaign_started_id is provided, check if a campaign with this ID already exists
+    if new_campaign.campaign_started_id:
+        existing_campaign = db.query(Campaign).filter(
+            Campaign.restaurant_id == restaurant_id,
+            Campaign.campaign_started_id == new_campaign.campaign_started_id
+        ).first()
+        
+        if existing_campaign and existing_campaign.id != new_campaign.id:
+            return {
+                "id": existing_campaign.id,
+                "name": existing_campaign.name,
+                "message": f"Campaign with this identifier already exists (created on {existing_campaign.created_at.strftime('%Y-%m-%d')})",
+                "already_exists": True
+            }
 
     db.add(new_campaign)
     db.commit()

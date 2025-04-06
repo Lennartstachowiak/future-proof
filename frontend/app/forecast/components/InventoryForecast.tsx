@@ -24,6 +24,7 @@ type PromotionRecommendation = {
   reason: string;
   potential_quantity: number;
   ingredient_excesses: { ingredient: string; excess: string }[];
+  campaign_started_id?: string;
 };
 
 type InventoryForecastSummary = {
@@ -54,6 +55,17 @@ type InventoryResponse = {
   items: InventoryItem[];
 };
 
+// Campaign response type
+type CampaignResponse = {
+  id: string;
+  name: string;
+  message: string;
+  already_exists?: boolean;
+  success_count?: number;
+  failed_count?: number;
+  total_messages?: number;
+};
+
 export default function InventoryForecast() {
   const [forecastData, setForecastData] =
     useState<InventoryForecastResponse | null>(null);
@@ -62,21 +74,22 @@ export default function InventoryForecast() {
   const [showAllShortages, setShowAllShortages] = useState(false);
   const [showAllExcesses, setShowAllExcesses] = useState(false);
   const [isProcessingReorderAll, setIsProcessingReorderAll] = useState(false);
-  
+
   // Campaign modal state
   const [showCampaignModal, setShowCampaignModal] = useState(false);
   const [selectedPromotion, setSelectedPromotion] =
     useState<PromotionRecommendation | null>(null);
   const [campaignName, setCampaignName] = useState("");
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
-  
+
   // Reorder all modal state
   const [showReorderAllModal, setShowReorderAllModal] = useState(false);
   const [reorderAllModalMessage, setReorderAllModalMessage] = useState("");
-  
+
   // Single item reorder modal state
   const [showSingleReorderModal, setShowSingleReorderModal] = useState(false);
-  const [selectedShortageItem, setSelectedShortageItem] = useState<InventoryForecastItem | null>(null);
+  const [selectedShortageItem, setSelectedShortageItem] =
+    useState<InventoryForecastItem | null>(null);
   const { selectedRestaurant } = useRestaurant();
 
   // Function to create a new campaign with the given name
@@ -87,20 +100,36 @@ export default function InventoryForecast() {
     setIsCreatingCampaign(true);
 
     try {
-      // Call the API to create a new campaign with the provided name
-      await apiPost(`api/v1/campaign/${selectedRestaurant.id}`, {
-        name: campaignName.trim(),
-      });
+      // Call the API to create a new campaign with the provided name and campaign_started_id
+      const response = await apiPost<CampaignResponse>(
+        `api/v1/campaign/${selectedRestaurant.id}`,
+        {
+          name: campaignName.trim(),
+          campaign_started_id: selectedPromotion.campaign_started_id,
+        }
+      );
 
-      // Show success message
-      alert(`Campaign '${campaignName}' created successfully!`);
+      // Check if the campaign already exists
+      if (response.already_exists) {
+        console.log(`${response.message}
+The existing campaign will be used.`);
+      } else {
+        // Show success message for new campaign
+        console.log(`Campaign '${campaignName}' created successfully!`);
+      }
+
+      // Refresh forecast data to update promotion recommendations
+      const data = await apiGet<InventoryForecastResponse>(
+        `api/v1/inventory-forecast/restaurant/${selectedRestaurant.id}`
+      );
+      setForecastData(data);
 
       // Close the modal and reset state
       setShowCampaignModal(false);
       setSelectedPromotion(null);
     } catch (error) {
       console.error("Error creating campaign:", error);
-      alert("Failed to create campaign. Please try again.");
+      console.log("Failed to create campaign. Please try again.");
     } finally {
       setIsCreatingCampaign(false);
     }
@@ -130,16 +159,18 @@ export default function InventoryForecast() {
   // Open the reorder all modal
   const openReorderAllModal = () => {
     if (!forecastData || !selectedRestaurant) return;
-    
+
     if (forecastData.forecast_summary.shortages.length === 0) {
-      alert("No shortages to reorder");
+      console.log("No shortages to reorder");
       return;
     }
-    
-    setReorderAllModalMessage(`Reorder all ${forecastData.forecast_summary.shortages.length} shortage items?`);
+
+    setReorderAllModalMessage(
+      `Reorder all ${forecastData.forecast_summary.shortages.length} shortage items?`
+    );
     setShowReorderAllModal(true);
   };
-  
+
   // Handle reordering all shortage items at once
   const handleReorderAllShortages = async () => {
     if (!forecastData || isProcessingReorderAll || !selectedRestaurant) return;
@@ -185,13 +216,13 @@ export default function InventoryForecast() {
 
       // Show results summary
       if (successCount > 0 && failCount === 0) {
-        alert(`Successfully reordered all ${successCount} items.`);
+        console.log(`Successfully reordered all ${successCount} items.`);
       } else if (successCount > 0 && failCount > 0) {
-        alert(
+        console.log(
           `Partially successful: ${successCount} items ordered, ${failCount} failed.`
         );
       } else {
-        alert("Failed to reorder any items.");
+        console.log("Failed to reorder any items.");
       }
 
       // Refresh data to show updated ordered amounts
@@ -201,7 +232,7 @@ export default function InventoryForecast() {
       setForecastData(data);
     } catch (error) {
       console.error("Error processing bulk reorder:", error);
-      alert("Failed to process bulk reorder request");
+      console.log("Failed to process bulk reorder request");
     } finally {
       setIsProcessingReorderAll(false);
     }
@@ -213,7 +244,7 @@ export default function InventoryForecast() {
     setSelectedShortageItem(item);
     setShowSingleReorderModal(true);
   };
-  
+
   // Reorder individual shortage item
   const handleReorderItem = async (item: InventoryForecastItem) => {
     if (!selectedRestaurant) return;
@@ -230,7 +261,7 @@ export default function InventoryForecast() {
       );
 
       if (!inventoryItem) {
-        alert(`Inventory item ${item.item} not found`);
+        console.log(`Inventory item ${item.item} not found`);
         return;
       }
 
@@ -244,7 +275,7 @@ export default function InventoryForecast() {
       );
 
       if (response) {
-        alert(
+        console.log(
           `Ordered ${Math.abs(item.difference)} ${item.unit} of ${item.item}`
         );
 
@@ -256,7 +287,7 @@ export default function InventoryForecast() {
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("Failed to place order");
+      console.log("Failed to place order");
     }
   };
 
@@ -547,79 +578,79 @@ export default function InventoryForecast() {
           <div className="fixed inset-0 bg-black opacity-50 z-40"></div>
           {/* Modal content container */}
           <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4 text-purple-800">
-              Start New Promotion Campaign
-            </h2>
-
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                Starting a promotion for{" "}
-                <strong>{selectedPromotion.menu_item}</strong>
-              </p>
-              <p className="text-xs text-gray-500 mb-4">
-                This will create a new campaign and notify all applicable
-                customers
-              </p>
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-semibold mb-4 text-purple-800">
+                Start New Promotion Campaign
+              </h2>
 
               <div className="mb-4">
-                <label
-                  htmlFor="campaignName"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                <p className="text-sm text-gray-600 mb-2">
+                  Starting a promotion for{" "}
+                  <strong>{selectedPromotion.menu_item}</strong>
+                </p>
+                <p className="text-xs text-gray-500 mb-4">
+                  This will create a new campaign and notify all applicable
+                  customers
+                </p>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="campaignName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Campaign Name
+                  </label>
+                  <input
+                    type="text"
+                    id="campaignName"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    value={campaignName}
+                    onChange={(e) => setCampaignName(e.target.value)}
+                    placeholder="Enter campaign name"
+                  />
+                </div>
+
+                <div className="mt-2 p-3 bg-purple-50 rounded-md">
+                  <h3 className="text-sm font-medium text-purple-800 mb-1">
+                    Promotion Details:
+                  </h3>
+                  <ul className="text-xs text-gray-600">
+                    <li className="mb-1">
+                      • Potential sales: {selectedPromotion.potential_quantity}
+                    </li>
+                    <li className="mb-1">
+                      • Uses {selectedPromotion.ingredient_excesses.length}{" "}
+                      excess ingredients
+                    </li>
+                    <li>• Will be sent to all applicable customers</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    setShowCampaignModal(false);
+                    setSelectedPromotion(null);
+                  }}
                 >
-                  Campaign Name
-                </label>
-                <input
-                  type="text"
-                  id="campaignName"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  value={campaignName}
-                  onChange={(e) => setCampaignName(e.target.value)}
-                  placeholder="Enter campaign name"
-                />
+                  Cancel
+                </button>
+                <button
+                  className={`px-4 py-2 bg-purple-600 text-white rounded-md ${
+                    isCreatingCampaign
+                      ? "opacity-75 cursor-not-allowed"
+                      : "hover:bg-purple-700"
+                  }`}
+                  onClick={handleCreateCampaign}
+                  disabled={isCreatingCampaign || !campaignName.trim()}
+                >
+                  {isCreatingCampaign ? "Creating..." : "Create Campaign"}
+                </button>
               </div>
-
-              <div className="mt-2 p-3 bg-purple-50 rounded-md">
-                <h3 className="text-sm font-medium text-purple-800 mb-1">
-                  Promotion Details:
-                </h3>
-                <ul className="text-xs text-gray-600">
-                  <li className="mb-1">
-                    • Potential sales: {selectedPromotion.potential_quantity}
-                  </li>
-                  <li className="mb-1">
-                    • Uses {selectedPromotion.ingredient_excesses.length} excess
-                    ingredients
-                  </li>
-                  <li>• Will be sent to all applicable customers</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                onClick={() => {
-                  setShowCampaignModal(false);
-                  setSelectedPromotion(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className={`px-4 py-2 bg-purple-600 text-white rounded-md ${
-                  isCreatingCampaign
-                    ? "opacity-75 cursor-not-allowed"
-                    : "hover:bg-purple-700"
-                }`}
-                onClick={handleCreateCampaign}
-                disabled={isCreatingCampaign || !campaignName.trim()}
-              >
-                {isCreatingCampaign ? "Creating..." : "Create Campaign"}
-              </button>
             </div>
           </div>
-        </div>
         </>
       )}
       {/* Reorder All Modal */}
@@ -636,36 +667,44 @@ export default function InventoryForecast() {
 
               <div className="mb-6">
                 <p className="text-gray-700 mb-4">{reorderAllModalMessage}</p>
-                
-                {forecastData && forecastData.forecast_summary.shortages.length > 0 && (
-                  <>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">Items to reorder:</h3>
-                    <div className="max-h-60 overflow-y-auto pr-2 mb-4">
-                      <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                          <tr>
-                            <th className="py-2 px-3">Item</th>
-                            <th className="py-2 px-3 text-right">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {forecastData.forecast_summary.shortages.map((item) => (
-                            <tr key={item.item} className="border-b">
-                              <td className="py-2 px-3">{item.item}</td>
-                              <td className="py-2 px-3 text-right">
-                                {Math.abs(item.difference)} {item.unit}
-                              </td>
+
+                {forecastData &&
+                  forecastData.forecast_summary.shortages.length > 0 && (
+                    <>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">
+                        Items to reorder:
+                      </h3>
+                      <div className="max-h-60 overflow-y-auto pr-2 mb-4">
+                        <table className="w-full text-sm text-left">
+                          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                              <th className="py-2 px-3">Item</th>
+                              <th className="py-2 px-3 text-right">Amount</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    
-                    <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-yellow-800 mb-4">
-                      <p>This will place orders for all shortage items. Orders will be processed immediately.</p>
-                    </div>
-                  </>
-                )}
+                          </thead>
+                          <tbody>
+                            {forecastData.forecast_summary.shortages.map(
+                              (item) => (
+                                <tr key={item.item} className="border-b">
+                                  <td className="py-2 px-3">{item.item}</td>
+                                  <td className="py-2 px-3 text-right">
+                                    {Math.abs(item.difference)} {item.unit}
+                                  </td>
+                                </tr>
+                              )
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-yellow-800 mb-4">
+                        <p>
+                          This will place orders for all shortage items. Orders
+                          will be processed immediately.
+                        </p>
+                      </div>
+                    </>
+                  )}
               </div>
 
               <div className="flex justify-end gap-2">
@@ -675,20 +714,25 @@ export default function InventoryForecast() {
                 >
                   Cancel
                 </button>
-                {forecastData && forecastData.forecast_summary.shortages.length > 0 && (
-                  <button
-                    className={`px-4 py-2 bg-red-600 text-white rounded-md ${
-                      isProcessingReorderAll ? 'opacity-75 cursor-not-allowed' : 'hover:bg-red-700'
-                    }`}
-                    onClick={() => {
-                      setShowReorderAllModal(false);
-                      handleReorderAllShortages();
-                    }}
-                    disabled={isProcessingReorderAll}
-                  >
-                    {isProcessingReorderAll ? "Processing..." : "Confirm Reorder"}
-                  </button>
-                )}
+                {forecastData &&
+                  forecastData.forecast_summary.shortages.length > 0 && (
+                    <button
+                      className={`px-4 py-2 bg-red-600 text-white rounded-md ${
+                        isProcessingReorderAll
+                          ? "opacity-75 cursor-not-allowed"
+                          : "hover:bg-red-700"
+                      }`}
+                      onClick={() => {
+                        setShowReorderAllModal(false);
+                        handleReorderAllShortages();
+                      }}
+                      disabled={isProcessingReorderAll}
+                    >
+                      {isProcessingReorderAll
+                        ? "Processing..."
+                        : "Confirm Reorder"}
+                    </button>
+                  )}
               </div>
             </div>
           </div>
@@ -709,38 +753,61 @@ export default function InventoryForecast() {
 
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="font-medium text-gray-900">{selectedShortageItem.item}</span>
+                  <span className="font-medium text-gray-900">
+                    {selectedShortageItem.item}
+                  </span>
                   <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                    {Math.abs(selectedShortageItem.difference)} {selectedShortageItem.unit} shortage
+                    {Math.abs(selectedShortageItem.difference)}{" "}
+                    {selectedShortageItem.unit} shortage
                   </span>
                 </div>
-                
+
                 <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Current Inventory Status:</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    Current Inventory Status:
+                  </h3>
                   <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="p-2 bg-gray-50 rounded">
-                      <div className="text-xs text-gray-500">Current Amount</div>
-                      <div className="font-medium">{selectedShortageItem.current_amount} {selectedShortageItem.unit}</div>
+                      <div className="text-xs text-gray-500">
+                        Current Amount
+                      </div>
+                      <div className="font-medium">
+                        {selectedShortageItem.current_amount}{" "}
+                        {selectedShortageItem.unit}
+                      </div>
                     </div>
                     <div className="p-2 bg-gray-50 rounded">
-                      <div className="text-xs text-gray-500">Required Amount</div>
-                      <div className="font-medium">{selectedShortageItem.required_amount} {selectedShortageItem.unit}</div>
+                      <div className="text-xs text-gray-500">
+                        Required Amount
+                      </div>
+                      <div className="font-medium">
+                        {selectedShortageItem.required_amount}{" "}
+                        {selectedShortageItem.unit}
+                      </div>
                     </div>
                   </div>
-                  
+
                   {selectedShortageItem.ordered_amount > 0 && (
                     <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 mb-3">
                       <p className="text-sm text-yellow-800">
-                        <strong>Note:</strong> You already have {selectedShortageItem.ordered_amount} {selectedShortageItem.unit} of this item on order.
+                        <strong>Note:</strong> You already have{" "}
+                        {selectedShortageItem.ordered_amount}{" "}
+                        {selectedShortageItem.unit} of this item on order.
                       </p>
                     </div>
                   )}
-                  
+
                   <div className="bg-gray-50 p-3 rounded">
-                    <p className="text-sm">Order amount: <strong>{Math.abs(selectedShortageItem.difference)} {selectedShortageItem.unit}</strong></p>
+                    <p className="text-sm">
+                      Order amount:{" "}
+                      <strong>
+                        {Math.abs(selectedShortageItem.difference)}{" "}
+                        {selectedShortageItem.unit}
+                      </strong>
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="text-xs text-gray-600">
                   Used in: {selectedShortageItem.menu_items.join(", ")}
                 </div>

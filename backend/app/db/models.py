@@ -38,6 +38,7 @@ class Campaign(Base):
     id = Column(String(32), primary_key=True, unique=True, default=get_uuid)
     restaurant_id = Column(String(32), ForeignKey("restaurant.id"), nullable=False, index=True)
     name = Column(String(255), nullable=True)
+    campaign_started_id = Column(String(255), nullable=True, unique=True, index=True)  # Unique identifier for campaign based on date and product
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
