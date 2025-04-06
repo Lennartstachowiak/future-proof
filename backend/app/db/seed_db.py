@@ -90,11 +90,14 @@ def load_dummy_data(db: Session, json_file_path: str):
                 created_at = datetime.fromisoformat(campaign_data['created_at'].replace('Z', '+00:00'))
             if 'updated_at' in campaign_data:
                 updated_at = datetime.fromisoformat(campaign_data['updated_at'].replace('Z', '+00:00'))
+            if 'name' in campaign_data:
+                name = campaign_data['name']
 
             campaign = Campaign(
                 restaurant_id=restaurant.id,
                 created_at=created_at,
-                updated_at=updated_at
+                updated_at=updated_at,
+                name=name
             )
             db.add(campaign)
             db.flush()  # Flush to get the ID

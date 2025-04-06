@@ -6,8 +6,7 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { format } from "date-fns";
 import { useRestaurant } from "../context/RestaurantContext";
-import { apiGet, apiPost } from "../utils/api";
-import { useRouter } from "next/navigation";
+import { apiGet } from "../utils/api";
 
 // API response types
 type RestaurantCampaignResponse = {
@@ -21,6 +20,7 @@ type Campaign = {
   id: string;
   name: string;
   description: string;
+  created_at: string;
   conversations: ApiConversation[];
 };
 
@@ -71,21 +71,12 @@ export default function PromotionPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter()
 
   // Campaign selection state
   const [selectedCampaign, setSelectedCampaign] = useState<string>("");
 
   // Get the selected restaurant from context
   const { selectedRestaurant } = useRestaurant();
-
-  // Define new function for starting a new campaign (empty for now)
-  const handleNewCampaign = async () => {
-    setIsLoading(true);
-    await apiPost(`api/v1/campaign/${selectedRestaurant?.id}`, {});
-    router.refresh();
-    setIsLoading(false);
-  };
 
   // Frontend conversations state (transformed from API data)
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -191,8 +182,10 @@ export default function PromotionPage() {
     (c) => c.id === selectedConversation
   );
   // Sort messages by timestamp in chronological order
-  const currentMessages = messages[selectedConversation] 
-    ? [...messages[selectedConversation]].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+  const currentMessages = messages[selectedConversation]
+    ? [...messages[selectedConversation]].sort(
+        (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+      )
     : [];
 
   // Loading state
@@ -231,12 +224,6 @@ export default function PromotionPage() {
           <p className="text-yellow-700">
             No campaigns found for this restaurant.
           </p>
-          <button
-            onClick={handleNewCampaign}
-            className="mt-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Create your first campaign
-          </button>
         </div>
       </DashboardLayout>
     );
@@ -255,16 +242,10 @@ export default function PromotionPage() {
         >
           {campaigns.map((campaign) => (
             <option key={campaign.id} value={campaign.id}>
-              {campaign.name} - {campaign.description}
+              {campaign.name} - {campaign.created_at ? format(new Date(campaign.created_at), 'MMM d, yyyy') : 'No date'}
             </option>
           ))}
         </select>
-        <button
-          onClick={handleNewCampaign}
-          className="p-2 border border-blue-500 rounded text-blue-500 hover:bg-blue-50"
-        >
-          Start new Campaign
-        </button>
       </div>
       <div className="flex h-[calc(100vh-180px)] bg-white rounded-lg shadow overflow-hidden">
         {/* Left Sidebar: Conversations List */}
@@ -290,8 +271,12 @@ export default function PromotionPage() {
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <div className="font-semibold text-gray-800">{conv.title}</div>
-                  <div className="text-sm text-gray-500 truncate">{conv.lastMessage}</div>
+                  <div className="font-semibold text-gray-800">
+                    {conv.title}
+                  </div>
+                  <div className="text-sm text-gray-500 truncate">
+                    {conv.lastMessage}
+                  </div>
                 </div>
               </div>
             ))}
@@ -307,10 +292,13 @@ export default function PromotionPage() {
                   {currentConversation.title}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Campaign: {campaigns.find(c => c.id === currentConversation.campaignId)?.name || 'Unknown'}
+                  Campaign:{" "}
+                  {campaigns.find(
+                    (c) => c.id === currentConversation.campaignId
+                  )?.name || "Unknown"}
                 </p>
               </div>
-              
+
               {/* Message Content */}
               <div className="flex-1 p-4 overflow-y-auto">
                 {currentMessages.map((message) => (
@@ -329,7 +317,9 @@ export default function PromotionPage() {
                           : "bg-gray-200 text-gray-800"
                       }`}
                     >
-                      <div className="font-medium mb-1">{message.sender === "user" ? "Customer" : "System"}</div>
+                      <div className="font-medium mb-1">
+                        {message.sender === "user" ? "Customer" : "System"}
+                      </div>
                       <div>{message.text}</div>
                       <div className="text-xs mt-1 opacity-70">
                         {format(message.timestamp, "h:mm a, MMM d")}

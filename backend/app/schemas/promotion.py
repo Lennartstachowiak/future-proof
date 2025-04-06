@@ -42,6 +42,7 @@ class Campaign(BaseModel):
     id: str
     name: str
     description: Optional[str] = None
+    created_at: Optional[datetime] = None
     conversations: List[Conversation] = []
 
 class Customer(BaseModel):

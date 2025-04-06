@@ -62,8 +62,9 @@ async def get_restaurant_campaigns(
     for campaign in campaigns_data:
         campaign_obj = Campaign(
             id=campaign.id,
-            name=f"Campaign {campaign.id[:8]}",  # Using first 8 chars of ID as a name placeholder
+            name=campaign.name or f"Campaign {campaign.id[:8]}",  # Use actual name or fallback to ID prefix
             description="Promotional campaign",  # Placeholder description
+            created_at=campaign.created_at,  # Add the created_at timestamp
             conversations=[]
         )
 

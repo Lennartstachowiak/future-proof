@@ -62,7 +62,49 @@ export default function InventoryForecast() {
   const [showAllShortages, setShowAllShortages] = useState(false);
   const [showAllExcesses, setShowAllExcesses] = useState(false);
   const [isProcessingReorderAll, setIsProcessingReorderAll] = useState(false);
+  
+  // Campaign modal state
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [selectedPromotion, setSelectedPromotion] =
+    useState<PromotionRecommendation | null>(null);
+  const [campaignName, setCampaignName] = useState("");
+  const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+  
+  // Reorder all modal state
+  const [showReorderAllModal, setShowReorderAllModal] = useState(false);
+  const [reorderAllModalMessage, setReorderAllModalMessage] = useState("");
+  
+  // Single item reorder modal state
+  const [showSingleReorderModal, setShowSingleReorderModal] = useState(false);
+  const [selectedShortageItem, setSelectedShortageItem] = useState<InventoryForecastItem | null>(null);
   const { selectedRestaurant } = useRestaurant();
+
+  // Function to create a new campaign with the given name
+  const handleCreateCampaign = async () => {
+    if (!selectedRestaurant || !campaignName.trim() || !selectedPromotion)
+      return;
+
+    setIsCreatingCampaign(true);
+
+    try {
+      // Call the API to create a new campaign with the provided name
+      await apiPost(`api/v1/campaign/${selectedRestaurant.id}`, {
+        name: campaignName.trim(),
+      });
+
+      // Show success message
+      alert(`Campaign '${campaignName}' created successfully!`);
+
+      // Close the modal and reset state
+      setShowCampaignModal(false);
+      setSelectedPromotion(null);
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      alert("Failed to create campaign. Please try again.");
+    } finally {
+      setIsCreatingCampaign(false);
+    }
+  };
 
   useEffect(() => {
     const fetchInventoryForecast = async () => {
@@ -85,17 +127,22 @@ export default function InventoryForecast() {
     fetchInventoryForecast();
   }, [selectedRestaurant]);
 
-  // Handle reordering all shortage items at once
-  const handleReorderAllShortages = async () => {
-    if (!forecastData || isProcessingReorderAll || !selectedRestaurant) return;
-
+  // Open the reorder all modal
+  const openReorderAllModal = () => {
+    if (!forecastData || !selectedRestaurant) return;
+    
     if (forecastData.forecast_summary.shortages.length === 0) {
       alert("No shortages to reorder");
       return;
     }
-
-    const confirmMessage = `Reorder all ${forecastData.forecast_summary.shortages.length} shortage items?`;
-    if (!confirm(confirmMessage)) return;
+    
+    setReorderAllModalMessage(`Reorder all ${forecastData.forecast_summary.shortages.length} shortage items?`);
+    setShowReorderAllModal(true);
+  };
+  
+  // Handle reordering all shortage items at once
+  const handleReorderAllShortages = async () => {
+    if (!forecastData || isProcessingReorderAll || !selectedRestaurant) return;
 
     setIsProcessingReorderAll(true);
 
@@ -160,24 +207,16 @@ export default function InventoryForecast() {
     }
   };
 
+  // Open single item reorder modal
+  const openSingleReorderModal = (item: InventoryForecastItem) => {
+    if (!selectedRestaurant) return;
+    setSelectedShortageItem(item);
+    setShowSingleReorderModal(true);
+  };
+  
   // Reorder individual shortage item
   const handleReorderItem = async (item: InventoryForecastItem) => {
     if (!selectedRestaurant) return;
-
-    // Check if this item already has orders pending
-    if (item.ordered_amount > 0) {
-      if (
-        !confirm(
-          `You already have ${item.ordered_amount} ${item.unit} of ${
-            item.item
-          } on order. Do you want to order an additional ${Math.abs(
-            item.difference
-          )} ${item.unit}?`
-        )
-      ) {
-        return;
-      }
-    }
 
     try {
       // Get inventory data to find the correct inventory ID
@@ -258,7 +297,7 @@ export default function InventoryForecast() {
           {forecastData.forecast_summary.shortages.length > 0 && (
             <button
               className="bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-2 px-3 rounded transition duration-150 ease-in-out flex items-center gap-1"
-              onClick={handleReorderAllShortages}
+              onClick={openReorderAllModal}
               disabled={isProcessingReorderAll}
             >
               {isProcessingReorderAll
@@ -312,7 +351,7 @@ export default function InventoryForecast() {
                     </div>
                     <button
                       className="bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-1 px-2 rounded transition duration-150 ease-in-out flex items-center shadow-sm"
-                      onClick={() => handleReorderItem(item)}
+                      onClick={() => openSingleReorderModal(item)}
                     >
                       Reorder {Math.abs(item.difference)} {item.unit}
                     </button>
@@ -467,10 +506,13 @@ export default function InventoryForecast() {
                   <button
                     className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center shadow-sm"
                     onClick={() => {
-                      // This would link to the promotion page or open a modal
-                      alert(
-                        `Creating promotion for ${recommendation.menu_item}`
+                      setSelectedPromotion(recommendation);
+                      setCampaignName(
+                        `${
+                          recommendation.menu_item
+                        } - ${new Date().toLocaleDateString()}`
                       );
+                      setShowCampaignModal(true);
                     }}
                   >
                     <span className="mr-1">Start Promotion</span>
@@ -498,6 +540,238 @@ export default function InventoryForecast() {
           </div>
         )}
       </div>
+      {/* Campaign Modal */}
+      {showCampaignModal && selectedPromotion && (
+        <>
+          {/* Modal backdrop with opacity */}
+          <div className="fixed inset-0 bg-black opacity-50 z-40"></div>
+          {/* Modal content container */}
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4 text-purple-800">
+              Start New Promotion Campaign
+            </h2>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Starting a promotion for{" "}
+                <strong>{selectedPromotion.menu_item}</strong>
+              </p>
+              <p className="text-xs text-gray-500 mb-4">
+                This will create a new campaign and notify all applicable
+                customers
+              </p>
+
+              <div className="mb-4">
+                <label
+                  htmlFor="campaignName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Campaign Name
+                </label>
+                <input
+                  type="text"
+                  id="campaignName"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                  placeholder="Enter campaign name"
+                />
+              </div>
+
+              <div className="mt-2 p-3 bg-purple-50 rounded-md">
+                <h3 className="text-sm font-medium text-purple-800 mb-1">
+                  Promotion Details:
+                </h3>
+                <ul className="text-xs text-gray-600">
+                  <li className="mb-1">
+                    • Potential sales: {selectedPromotion.potential_quantity}
+                  </li>
+                  <li className="mb-1">
+                    • Uses {selectedPromotion.ingredient_excesses.length} excess
+                    ingredients
+                  </li>
+                  <li>• Will be sent to all applicable customers</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                onClick={() => {
+                  setShowCampaignModal(false);
+                  setSelectedPromotion(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 bg-purple-600 text-white rounded-md ${
+                  isCreatingCampaign
+                    ? "opacity-75 cursor-not-allowed"
+                    : "hover:bg-purple-700"
+                }`}
+                onClick={handleCreateCampaign}
+                disabled={isCreatingCampaign || !campaignName.trim()}
+              >
+                {isCreatingCampaign ? "Creating..." : "Create Campaign"}
+              </button>
+            </div>
+          </div>
+        </div>
+        </>
+      )}
+      {/* Reorder All Modal */}
+      {showReorderAllModal && (
+        <>
+          {/* Modal backdrop with opacity */}
+          <div className="fixed inset-0 bg-black opacity-50 z-40"></div>
+          {/* Modal content container */}
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-semibold mb-4 text-red-700">
+                Reorder All Shortages
+              </h2>
+
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">{reorderAllModalMessage}</p>
+                
+                {forecastData && forecastData.forecast_summary.shortages.length > 0 && (
+                  <>
+                    <h3 className="text-sm font-medium text-gray-900 mb-2">Items to reorder:</h3>
+                    <div className="max-h-60 overflow-y-auto pr-2 mb-4">
+                      <table className="w-full text-sm text-left">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                          <tr>
+                            <th className="py-2 px-3">Item</th>
+                            <th className="py-2 px-3 text-right">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {forecastData.forecast_summary.shortages.map((item) => (
+                            <tr key={item.item} className="border-b">
+                              <td className="py-2 px-3">{item.item}</td>
+                              <td className="py-2 px-3 text-right">
+                                {Math.abs(item.difference)} {item.unit}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-yellow-800 mb-4">
+                      <p>This will place orders for all shortage items. Orders will be processed immediately.</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowReorderAllModal(false)}
+                >
+                  Cancel
+                </button>
+                {forecastData && forecastData.forecast_summary.shortages.length > 0 && (
+                  <button
+                    className={`px-4 py-2 bg-red-600 text-white rounded-md ${
+                      isProcessingReorderAll ? 'opacity-75 cursor-not-allowed' : 'hover:bg-red-700'
+                    }`}
+                    onClick={() => {
+                      setShowReorderAllModal(false);
+                      handleReorderAllShortages();
+                    }}
+                    disabled={isProcessingReorderAll}
+                  >
+                    {isProcessingReorderAll ? "Processing..." : "Confirm Reorder"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Single Item Reorder Modal */}
+      {showSingleReorderModal && selectedShortageItem && (
+        <>
+          {/* Modal backdrop with opacity */}
+          <div className="fixed inset-0 bg-black opacity-50 z-40"></div>
+          {/* Modal content container */}
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-semibold mb-4 text-red-700">
+                Reorder Item
+              </h2>
+
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-medium text-gray-900">{selectedShortageItem.item}</span>
+                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    {Math.abs(selectedShortageItem.difference)} {selectedShortageItem.unit} shortage
+                  </span>
+                </div>
+                
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Current Inventory Status:</h3>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="p-2 bg-gray-50 rounded">
+                      <div className="text-xs text-gray-500">Current Amount</div>
+                      <div className="font-medium">{selectedShortageItem.current_amount} {selectedShortageItem.unit}</div>
+                    </div>
+                    <div className="p-2 bg-gray-50 rounded">
+                      <div className="text-xs text-gray-500">Required Amount</div>
+                      <div className="font-medium">{selectedShortageItem.required_amount} {selectedShortageItem.unit}</div>
+                    </div>
+                  </div>
+                  
+                  {selectedShortageItem.ordered_amount > 0 && (
+                    <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 mb-3">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Note:</strong> You already have {selectedShortageItem.ordered_amount} {selectedShortageItem.unit} of this item on order.
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="text-sm">Order amount: <strong>{Math.abs(selectedShortageItem.difference)} {selectedShortageItem.unit}</strong></p>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-gray-600">
+                  Used in: {selectedShortageItem.menu_items.join(", ")}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    setShowSingleReorderModal(false);
+                    setSelectedShortageItem(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                  onClick={() => {
+                    setShowSingleReorderModal(false);
+                    const item = selectedShortageItem;
+                    setSelectedShortageItem(null);
+                    handleReorderItem(item);
+                  }}
+                >
+                  Confirm Reorder
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </Card>
   );
 }
